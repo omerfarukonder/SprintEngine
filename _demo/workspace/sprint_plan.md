@@ -1,12 +1,12 @@
-# TechShop SEO Tech Sprint — Q1 Demo
+# Acme SaaS — Product Sprint Q2-126
 
 | # | Task | Definition | Links | End of Sprint Status |
 | --- | --- | --- | --- | --- |
-| 1 | Homepage Performance Optimization | Reduce LCP below 2.5s by deferring non-critical JS and optimizing image delivery. | https://github.com/example/techshop/issues/101 | In Progress |
-| 2 | SEO Metadata Automation | Auto-generate meta titles and descriptions for all category pages via CMS templating. | https://github.com/example/techshop/issues/102 | In Progress |
-| 3 | Organization Schema Implementation | Add Organization + BreadcrumbList structured data to homepage and PDP pages. | https://github.com/example/techshop/issues/103 | Done |
-| 4 | URL Canonicalization Fix | Fix duplicate canonical URLs caused by URL slug variations; shift to 301 redirect logic. | https://github.com/example/techshop/issues/104 | In Progress: Alice & Bob investigating. |
-| 5 | Internal Linking Enhancement | Dynamically inject high-impression Brand+Category URLs into page widgets to boost crawl equity. | https://github.com/example/techshop/issues/105 | Not started |
-| 6 | Mobile Rendering Audit | Resolve discrepancy where mobile endpoints receive different SEO data than desktop. | https://github.com/example/techshop/issues/106 | On Hold |
-| 7 | Robots.txt Cleanup | Remove deprecated crawl rules and add directives for new URL patterns. | https://github.com/example/techshop/issues/107 | Will be deployed next sprint |
-| 8 | Filter Page Migration | Migrate legacy ?filters= URL patterns to clean /f/ slugs with 301 redirects and metadata preservation. | https://github.com/example/techshop/issues/108 | Awaiting platform team alignment |
+| 1 | User Onboarding Redesign | Redesign the 3-step signup flow to reduce drop-off. Replace modal wizard with inline progressive form. | https://github.com/acme/saas/issues/201 | In Progress |
+| 2 | Dashboard Performance | Reduce initial dashboard load time from 4s to under 1s by lazy-loading widgets and virtualizing the activity feed. | https://github.com/acme/saas/issues/202 | In Progress |
+| 3 | Mobile Push Notifications | Implement push notification support for iOS and Android. Covers permission flow, subscription management, and delivery. | https://github.com/acme/saas/issues/203 | Done |
+| 4 | Billing Integration — Stripe | Integrate Stripe Checkout and Customer Portal. Handle subscription upgrades, downgrades, and cancellations. | https://github.com/acme/saas/issues/204 | In Progress |
+| 5 | API Rate Limiting | Implement per-tenant rate limiting (token bucket). Add 429 responses with Retry-After headers. | https://github.com/acme/saas/issues/205 | Not started |
+| 6 | Dark Mode Support | Add dark/light theme toggle using CSS variables. Persist preference to user profile. | https://github.com/acme/saas/issues/206 | On Hold |
+| 7 | Data Export (CSV/JSON) | Allow users to export their data in CSV and JSON formats from the account settings page. | https://github.com/acme/saas/issues/207 | Will be deployed next sprint |
+| 8 | Audit Log Viewer | Build a read-only audit trail UI showing who did what and when, filterable by user and action type. | https://github.com/acme/saas/issues/208 | Blocked — awaiting data schema sign-off |

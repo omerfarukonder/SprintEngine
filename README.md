@@ -2,6 +2,8 @@
 
 A local-first sprint management copilot powered by LLM. Chat with your sprint, update task statuses in natural language, generate status tables, and get intelligent follow-up questions — all running on your machine with no external database.
 
+![Sprint Engine UI](static/screenshot.png)
+
 ## Features
 
 - **Chat-driven updates** — describe progress in plain language; the engine parses and updates the sprint state
