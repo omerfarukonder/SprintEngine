@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sprint Engine</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap");
+      * { box-sizing: border-box; }
+      :root {
+        --left-col-width: 32%;
+        --bg: #141315;
+        --bg-top: #1b191e;
+        --panel: #232127;
+        --panel-2: #2a2730;
+        --text: #f5f4f2;
+        --muted: #b7b0ba;
+        --line: #3a3641;
+        --accent: #df8f70;
+        --accent-2: #ffb89f;
+      }
+      body {
+        font-family: "Manrope", sans-serif;
+        margin: 0;
+        background: radial-gradient(circle at 12% 0%, var(--bg-top) 0%, var(--bg) 45%);
+        color: var(--text);
+      }
+      .wrap { max-width: 1400px; margin: 0 auto; padding: 24px; }
+      h1 { margin: 0; font-size: 42px; letter-spacing: 0.2px; }
+      .subtitle { color: var(--muted); margin: 8px 0 18px; font-size: 13px; }
+      .panel {
+        background: linear-gradient(180deg, var(--panel-2) 0%, var(--panel) 100%);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.26);
+        margin-bottom: 16px;
+        min-width: 0;
+      }
+      #log {
+        height: 384px;
+        overflow: auto;
+        background: #17151b;
+        border: 1px solid #36313d;
+        border-radius: 10px;
+        padding: 12px;
+        font-family: "Manrope", sans-serif;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      .chat-line { margin-bottom: 8px; }
+      .chat-role {
+        display: inline-block;
+        min-width: 72px;
+        font-weight: 700;
+        margin-right: 6px;
+      }
+      .chat-role.you { color: #9cc8ff; }
+      .chat-role.copilot { color: #ffbe97; }
+      .chat-role.system { color: #b7b0ba; }
+      .chat-text { color: #f6ede8; white-space: pre-wrap; word-break: break-word; }
+      input, textarea, select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #1c1a20;
+        color: var(--text);
+        font-family: "Manrope", sans-serif;
+      }
+      textarea { resize: vertical; min-height: 56px; max-height: 180px; }
+      .chat-input-wrap {
+        position: relative;
+        width: 100%;
+        min-width: 0;
+      }
+      #message {
+        min-height: 88px;
+        padding-right: 96px;
+      }
+      .chat-actions {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+        display: flex;
+        gap: 8px;
+      }
+      .icon-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        border: 1px solid #4a4356;
+        background: #2f2b36;
+        color: #f2eff4;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        font-size: 15px;
+      }
+      .icon-btn.send {
+        background: linear-gradient(180deg, var(--accent-2) 0%, var(--accent) 100%);
+        color: #1f1715;
+        border-color: transparent;
+      }
+      .mode-menu {
+        position: absolute;
+        right: 46px;
+        bottom: 50px;
+        min-width: 150px;
+        border: 1px solid #4a4356;
+        background: #2a2730;
+        border-radius: 10px;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+        padding: 6px;
+        display: none;
+        z-index: 10;
+      }
+      .mode-menu.open { display: block; }
+      .mode-option {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        color: #f2edf5;
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+      .mode-option:hover { background: #3a3641; }
+      .mode-chip {
+        margin-top: 6px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .row { display: flex; gap: 8px; margin-top: 8px; }
+      .top-nav {
+        margin-top: 10px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .top-tabs {
+        display: flex;
+        gap: 8px;
+      }
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .init-mode-select {
+        width: 180px;
+        padding: 7px 10px;
+      }
+      .warn-badge {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #8b5c4d;
+        background: #3b2a2f;
+        color: #ffd5c6;
+        border-radius: 999px;
+        font-size: 11px;
+        padding: 4px 8px;
+      }
+      .import-controls {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .import-controls.hidden {
+        display: none;
+      }
+      .top-actions input {
+        width: 360px;
+        max-width: 52vw;
+        padding: 8px 10px;
+      }
+      .top-actions button {
+        padding: 7px 10px;
+      }
+      .view { display: none; }
+      .view.active { display: block; }
+      .tab-btn.active {
+        background: linear-gradient(180deg, var(--accent-2) 0%, var(--accent) 100%);
+        color: #1f1715;
+        border-color: transparent;
+      }
+      button {
+        padding: 8px 12px;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        cursor: pointer;
+        background: linear-gradient(180deg, var(--accent-2) 0%, var(--accent) 100%);
+        color: #1f1715;
+        font-weight: 600;
+        font-family: "Manrope", sans-serif;
+      }
+      button.secondary {
+        background: #2f2b36;
+        color: #f2eff4;
+        border-color: #4a4356;
+      }
+      button:disabled, input:disabled, select:disabled, textarea:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      #followups { margin: 0; padding-left: 18px; }
+      .grid { display: grid; grid-template-columns: var(--left-col-width) 1fr; gap: 16px; }
+      .grid > div { min-width: 0; }
+      .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+      .panel-head h3 { margin: 0; }
+      pre {
+        margin: 0; white-space: pre-wrap; background: #19171d; border: 1px solid #383242;
+        border-radius: 10px; padding: 10px; max-height: 300px; overflow: auto; color: #efe7ef;
+        font-family: "Manrope", sans-serif;
+      }
+      table { width: 100%; border-collapse: collapse; table-layout: auto; font-size: 12.5px; font-family: "Manrope", sans-serif; }
+      th, td {
+        border-bottom: 1px solid #3f3a49;
+        padding: 9px;
+        text-align: left;
+        vertical-align: top;
+        overflow-wrap: break-word;
+        word-break: normal;
+      }
+      th { background: #2f2a38; color: #f5edf4; font-size: 11.5px; letter-spacing: 0.3px; }
+      td { color: #efeaf0; }
+      .task-cell {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+      }
+      .task-link-icon {
+        text-decoration: none;
+        font-size: 13px;
+        line-height: 1;
+      }
+      .status-meta-line {
+        margin-top: 4px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .next-steps-line {
+        margin-top: 8px;
+      }
+      th:nth-child(1), td:nth-child(1) { width: 42px; }
+      th:nth-child(2), td:nth-child(2) { width: 210px; }
+      th:nth-child(4), td:nth-child(4) { width: 58px; }
+      th:nth-child(5), td:nth-child(5) { width: 122px; }
+      th:nth-child(6), td:nth-child(6) { width: 70px; }
+      th:nth-child(3), td:nth-child(3) { width: 250px; }
+      th:nth-child(7), td:nth-child(7) { width: 280px; }
+      td:nth-child(2) { overflow-wrap: normal; }
+      .muted { color: var(--muted); font-size: 12px; margin-top: 8px; }
+      .mode-select { width: 180px; }
+      .status-pill {
+        display: inline-flex; align-items: center; gap: 8px; margin-top: 8px;
+        padding: 6px 10px; border-radius: 999px; font-size: 12px;
+        border: 1px solid #4a4356; color: #f2edf5; background: #2a2730;
+      }
+      .status-pill.loading { border-color: #8b5c4d; color: #ffd5c6; }
+      .status-dots::after { content: ""; display: inline-block; width: 14px; text-align: left; animation: dots 1s steps(4, end) infinite; }
+      .report-meta {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .report-editor {
+        min-height: 420px;
+        font-family: "Manrope", sans-serif;
+      }
+      .report-preview {
+        min-height: 420px;
+        max-height: 70vh;
+        overflow: auto;
+        background: #19171d;
+        border: 1px solid #383242;
+        border-radius: 10px;
+        padding: 14px;
+        color: #efe7ef;
+        line-height: 1.5;
+      }
+      .report-preview h1,
+      .report-preview h2,
+      .report-preview h3 {
+        margin: 0 0 10px;
+      }
+      .report-preview p { margin: 0 0 10px; }
+      .report-preview ul { margin: 0 0 10px; padding-left: 20px; }
+      .report-preview code {
+        background: #2a2730;
+        border: 1px solid #4a4356;
+        border-radius: 6px;
+        padding: 1px 5px;
+        font-size: 12px;
+      }
+      .report-preview a { color: #ffbe97; }
+      .hidden { display: none; }
+      @keyframes dots { 0%{content:"";}25%{content:".";}50%{content:"..";}75%{content:"...";}100%{content:"";} }
+      @media (max-width: 980px) {
+        .grid { grid-template-columns: 1fr; }
+        .split-control input[type="range"] { width: 100%; }
+        .top-actions input {
+          width: 100%;
+          max-width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Sprint Engine</h1>
+      <div class="subtitle">local-first sprint memory and execution</div>
+      <div class="top-nav">
+        <div class="top-tabs">
+          <button id="dashboardTabBtn" class="secondary tab-btn active" type="button">Dashboard</button>
+          <button id="reportTabBtn" class="secondary tab-btn" type="button">Sprint Report</button>
+        </div>
+        <div class="top-actions">
+          <select id="initModeSelect" class="init-mode-select" title="Initialize mode">
+            <option value="sync_missing" selected>Initialize: Sync Missing (Safe)</option>
+            <option value="destructive">Initialize: Rebuild from Plan (Destructive)</option>
+          </select>
+          <button id="initBtn">Initialize from sprint_plan.md</button>
+          <button id="undoInitBtn" class="secondary" type="button">Undo Initialize</button>
+          <span id="initWarningBadge" class="warn-badge hidden">Warning: existing updates detected</span>
+          <button id="tableBtn" class="secondary">Generate status table</button>
+          <button id="importToggleBtn" class="secondary" type="button">Show Import</button>
+          <div id="importControls" class="import-controls hidden">
+            <input id="docxPath" placeholder="DOCX absolute path, e.g. /Users/.../SEO Tech Sprint Plan Q1-7 '26.docx" />
+            <button id="importDocxBtn" class="secondary">Import DOCX -> sprint_plan.md</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="dashboardView" class="view active">
+        <div class="grid">
+          <div>
+            <div class="panel">
+              <h3>Chatbot</h3>
+              <div id="log"></div>
+              <div class="row">
+                <div class="chat-input-wrap">
+                  <textarea id="message" rows="3" placeholder="Type daily update or ask a question..."></textarea>
+                  <div class="chat-actions">
+                    <button id="chatModeBtn" class="icon-btn" type="button" title="Switch mode">◎</button>
+                    <button id="sendBtn" class="icon-btn send" type="button" title="Send">➤</button>
+                  </div>
+                  <div id="chatModeMenu" class="mode-menu" role="menu" aria-label="Chat mode menu">
+                    <button class="mode-option" data-mode="auto" type="button">Auto</button>
+                    <button class="mode-option" data-mode="query" type="button">Explain-only</button>
+                    <button class="mode-option" data-mode="update" type="button">Update-only</button>
+                  </div>
+                  <div id="chatModeLabel" class="mode-chip">Mode: Auto</div>
+                </div>
+              </div>
+              <div id="chatStatus" class="status-pill">Ready</div>
+            </div>
+            <div class="panel">
+              <h3>Follow-ups</h3>
+              <ul id="followups"></ul>
+            </div>
+          </div>
+          <div>
+            <div class="panel">
+              <div class="panel-head">
+                <h3>Status Table (Live)</h3>
+                <select id="tableSort" class="mode-select" title="Table sorting">
+                  <option value="status" selected>Status Priority</option>
+                  <option value="plan">Plan Order</option>
+                  <option value="updated">Latest Updated</option>
+                </select>
+              </div>
+              <div id="statusSprintName" class="muted"></div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Task</th>
+                    <th>Definition</th>
+                    <th>Light</th>
+                    <th>Status</th>
+                    <th>ETA</th>
+                    <th>Latest Update</th>
+                  </tr>
+                </thead>
+                <tbody id="statusTableBody"></tbody>
+              </table>
+              <div id="statusMeta" class="muted"></div>
+            </div>
+            <div class="panel">
+              <h3>Sprint Plan</h3>
+              <pre id="planContent">Loading sprint plan...</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="reportView" class="view">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Sprint Report (Editable)</h3>
+            <div class="row" style="margin-top: 0;">
+              <button id="reportEditViewBtn" class="secondary tab-btn active" type="button">Edit</button>
+              <button id="reportPreviewViewBtn" class="secondary tab-btn" type="button">Preview</button>
+              <button id="generateReportBtn" type="button">Generate Report</button>
+              <button id="saveReportBtn" class="secondary" type="button">Save Report</button>
+            </div>
+          </div>
+          <textarea
+            id="reportEditor"
+            class="report-editor"
+            rows="18"
+            placeholder="Generate report, edit content, and save to workspace/reports/latest_sprint_report.md"
+          ></textarea>
+          <div id="reportPreview" class="report-preview hidden"></div>
+          <div id="reportStatus" class="status-pill">Report ready</div>
+          <div id="reportMeta" class="report-meta">No report generated yet.</div>
+        </div>
+      </div>
+    </div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

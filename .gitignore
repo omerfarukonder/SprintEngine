@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Environment
+.env
+
+# macOS
+.DS_Store
+
+# Private stash (always keep out of git)
+_private/
+
+# Large generated workspace files
+workspace/*_vectors.json
+workspace/*_events.jsonl
+workspace/sprint_state.backup-*.json
+workspace/backups/
+workspace/generated_tables/
+workspace/reports/
+workspace/daily_logs/
+
+# Company document
+*.docx
+
+# Mode tracking
+.current_mode

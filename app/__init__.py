@@ -1,0 +1,1 @@
+# Local Sprint Copilot package.

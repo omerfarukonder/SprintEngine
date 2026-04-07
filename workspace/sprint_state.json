@@ -1,0 +1,608 @@
+{
+  "sprint_name": "SEO Tech Sprint Plan Q2-126",
+  "created_at": "2026-04-07T10:43:36.484236",
+  "updated_at": "2026-04-07T12:15:46.792757",
+  "tasks": [
+    {
+      "id": "table-hierarchy-revision-case-1-1",
+      "task_name": "Hierarchy Revision - Case 1",
+      "definition": "Implementation of Case 1: Category ID to Another Category ID, regarding the Kaspi Catalog Hierarchy Revisions",
+      "task_link": "https://wiki.hepsiburada.com/spaces/SEOO/pages/518127629/Hierarchy+Revision+Project+Technical+Cases+Redirection+Requirements",
+      "owner": "",
+      "eta": "Apr 17",
+      "status": "in_progress",
+      "traffic_light": "green",
+      "latest_update": "ETA is set for Apr 17.\n\nNext Steps: Continue refinement and prepare for implementation.",
+      "blockers": [],
+      "next_expected_checkpoint": "2026-04-08",
+      "do_not_ask_until": "2026-04-07",
+      "last_updated_at": "2026-04-07T12:15:31.435405",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "table-automatic-link-generation-for-brand-magaza-pages-2",
+      "task_name": "Automatic link generation for Brand / Magaza Pages",
+      "definition": "To automate internal linking by dynamically injecting high-impression Brand+Category URLs into page widgets to boost crawl equity and organic rankings.",
+      "task_link": "https://wiki.hepsiburada.com/spaces/SEOO/pages/498928892/Automatic+link+generation+for+Brand+Category+Brand+Category+Pages",
+      "owner": "",
+      "eta": "Apr 17",
+      "status": "in_progress",
+      "traffic_light": "green",
+      "latest_update": "ETA is set for Apr 17.\n\nNext Steps: Continue implementation and confirm the next checkpoint.",
+      "blockers": [],
+      "next_expected_checkpoint": "2026-04-08",
+      "do_not_ask_until": "2026-04-07",
+      "last_updated_at": "2026-04-07T12:15:46.792582",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "table-cache-performance-fix-3",
+      "task_name": "Cache Performance Fix",
+      "definition": "Resolve 1,050ms INP delay. Move JS/SVG files to local domain & extend cache duration.",
+      "task_link": "https://hepsiburada.slack.com/archives/C08JMF7A7C3/p1774260268540349",
+      "owner": "",
+      "eta": "Apr 17",
+      "status": "in_progress",
+      "traffic_light": "yellow",
+      "latest_update": "Work continues on the cross-domain fix and popup reduction.\n\nNext Steps: confirm implementation details and validate the reduced popup flow.",
+      "blockers": [],
+      "next_expected_checkpoint": "",
+      "do_not_ask_until": null,
+      "last_updated_at": "2026-04-07T09:49:10.925393",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "table-pdp-canonical-fix-4",
+      "task_name": "PDP Canonical Fix",
+      "definition": "Fix inconsistent canonicals caused by SF-5398 URL slug variations. Shift to 301 redirect logic.",
+      "task_link": "https://hepsiburada.slack.com/archives/C02PZK6NNHF/p1771501989369769?thread_ts=1771425280.717989&cid=C02PZK6NNHF",
+      "owner": "\u00d6mer",
+      "eta": "Apr 17",
+      "status": "in_progress",
+      "traffic_light": "yellow",
+      "latest_update": "\u00d6mer will arrange a session to clarify the requirements and the current error state.\n\nNext Steps: Hold the session, confirm scope, and align on the fix path.",
+      "blockers": [],
+      "next_expected_checkpoint": "2026-04-08",
+      "do_not_ask_until": "2026-04-07",
+      "last_updated_at": "2026-04-07T11:17:13.098478",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "table-robots-txt-updates-5",
+      "task_name": "Robots.txt Updates",
+      "definition": "Deleting user agents for the tools requested by the SEO Team",
+      "task_link": "https://hepsiburada.slack.com/archives/C02PZK6NNHF/p1772801906257379?thread_ts=1769690677.763289&cid=C02PZK6NNHF",
+      "owner": "",
+      "eta": "Apr 17",
+      "status": "in_progress",
+      "traffic_light": "green",
+      "latest_update": "Work continues and the delivery date is now set.\n\nNext Steps: complete the update and verify the published rules.",
+      "blockers": [],
+      "next_expected_checkpoint": "",
+      "do_not_ask_until": null,
+      "last_updated_at": "2026-04-07T09:49:10.931844",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "table-seo-competitor-gap-enhancements-project-1-6",
+      "task_name": "SEO Competitor Gap Enhancements - Project 1",
+      "definition": "Reordering the H structure to keep the H1 at the top",
+      "task_link": "https://wiki.hepsiburada.com/spaces/SEOO/pages/498926829/SEO+Competitor+Gap+Enhancements",
+      "owner": "",
+      "eta": "Apr 17",
+      "status": "in_progress",
+      "traffic_light": "green",
+      "latest_update": "FE implementation has started and the first build is underway.\n\nNext Steps: continue FE work and confirm the next checkpoint.",
+      "blockers": [],
+      "next_expected_checkpoint": "2026-04-08",
+      "do_not_ask_until": "2026-04-07",
+      "last_updated_at": "2026-04-07T11:19:07.872579",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "table-default-h1-categories-7",
+      "task_name": "Default H1 Categories",
+      "definition": "Default H1 Categories",
+      "task_link": "",
+      "owner": "",
+      "eta": "Apr 17",
+      "status": "blocked",
+      "traffic_light": "red",
+      "latest_update": "Live change remains unstable and may be tied to Akamai cache behavior.\n\nNext Steps: isolate cache behavior and confirm the source of instability.",
+      "blockers": [],
+      "next_expected_checkpoint": "",
+      "do_not_ask_until": null,
+      "last_updated_at": "2026-04-07T09:49:10.925887",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "table-enhanced-breadcrumb-trial-links-for-brand-category-pdp-pages-8",
+      "task_name": "Enhanced Breadcrumb Trial Links for Brand+Category & PDP Pages",
+      "definition": "Enhanced Breadcrumb Trial Links for Brand+Category & PDP Pages",
+      "task_link": "",
+      "owner": "",
+      "eta": "TBA",
+      "status": "on_hold",
+      "traffic_light": "yellow",
+      "latest_update": "Blocked by PLP + PDP team alignment and timeline is at risk.\n\nNext Steps: confirm alignment and restart planning.",
+      "blockers": [
+        "PLP + PDP team alignment"
+      ],
+      "next_expected_checkpoint": "2026-04-08",
+      "do_not_ask_until": "2026-04-07",
+      "last_updated_at": "2026-04-07T11:59:31.658449",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "table-adding-url-to-home-page-9",
+      "task_name": "Adding URL to Home Page",
+      "definition": "Adding URL to Home Page",
+      "task_link": "https://hepsiburada.slack.com/archives/C02PZK6NNHF/p1775546195957089",
+      "owner": "",
+      "eta": "Apr 8",
+      "status": "blocked",
+      "traffic_light": "red",
+      "latest_update": "Blocked by Bandwidth discussion with Do\u011fa and timeline is at risk.\n\nNext Steps: Review on Apr 8 and decide whether to start or defer.",
+      "blockers": [
+        "Bandwidth discussion with Do\u011fa"
+      ],
+      "next_expected_checkpoint": "Apr 8",
+      "do_not_ask_until": "2026-04-07",
+      "last_updated_at": "2026-04-07T10:59:48.707453",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "table-pop-ler-aramalar-widget-enhancement-for-pdp-plp-pages-10",
+      "task_name": "Pop\u00fcler Aramalar widget enhancement for PDP + PLP Pages",
+      "definition": "Pop\u00fcler Aramalar widget enhancement for PDP + PLP Pages",
+      "task_link": "https://wiki.hepsiburada.com/spaces/SEOO/pages/498928929/Pop%C3%BCler+Aramalar+widget+enhancement+for+PDP+PLP+Pages",
+      "owner": "",
+      "eta": "",
+      "status": "on_hold",
+      "traffic_light": "yellow",
+      "latest_update": "Prioritized for a later sprint and for now.\n\nNext Steps: Revisit in the next sprint planning cycle and confirm the restart date.",
+      "blockers": [],
+      "next_expected_checkpoint": "2026-04-08",
+      "do_not_ask_until": "2026-04-07",
+      "last_updated_at": "2026-04-07T11:17:34.976679",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "table-search-collection-migration-11",
+      "task_name": "Search Collection Migration",
+      "definition": "4-step plan: Exclude /ara from backlink logic, bulk-create collections, & update Varnish 301 rules.",
+      "task_link": "https://hepsiburada.slack.com/archives/C02PZK6NNHF/p1771840761332379",
+      "owner": "",
+      "eta": "TBA",
+      "status": "on_hold",
+      "traffic_light": "yellow",
+      "latest_update": "Blocked by New requests from the SEO Team and timeline is at risk.\n\nNext Steps: confirm scope in a later sprint and resume planning.",
+      "blockers": [
+        "New requests from the SEO Team"
+      ],
+      "next_expected_checkpoint": "2026-04-08",
+      "do_not_ask_until": "2026-04-07",
+      "last_updated_at": "2026-04-07T11:59:31.659406",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "table-seo-content-filter-bug-12",
+      "task_name": "SEO Content Filter Bug",
+      "definition": "Fix legacy 2019 logic hiding content on filtered pages. Ensure SSR visibility for GoogleBot.",
+      "task_link": "https://hepsiburada.slack.com/archives/C02PZK6NNHF/p1756193422340629",
+      "owner": "",
+      "eta": "TBA",
+      "status": "on_hold",
+      "traffic_light": "yellow",
+      "latest_update": "Blocked by Other priorities and timeline is at risk.\n\nNext Steps: revisit when priorities are reassessed.",
+      "blockers": [
+        "Other priorities"
+      ],
+      "next_expected_checkpoint": "2026-04-08",
+      "do_not_ask_until": "2026-04-07",
+      "last_updated_at": "2026-04-07T11:59:31.659175",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "table-m-web-content-disparity-13",
+      "task_name": "M-Web Content Disparity",
+      "definition": "Resolve discrepancy where mweb receives different SEO endpoint data than desktop.",
+      "task_link": "https://hepsiburada.slack.com/archives/C02PZK6NNHF/p1756193422340629",
+      "owner": "",
+      "eta": "TBA",
+      "status": "on_hold",
+      "traffic_light": "yellow",
+      "latest_update": "Work remains until priorities are cleared, and the ETA is now TBA.\n\nNext Steps: confirm the restart date after priorities are reassessed.",
+      "blockers": [],
+      "next_expected_checkpoint": "2026-04-08",
+      "do_not_ask_until": "2026-04-07",
+      "last_updated_at": "2026-04-07T11:59:31.658977",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "table-dynamic-content-fields-14",
+      "task_name": "Dynamic Content Fields",
+      "definition": "Implementation of dynamic pricing directly into content blocks.",
+      "task_link": "",
+      "owner": "",
+      "eta": "TBA",
+      "status": "on_hold",
+      "traffic_light": "yellow",
+      "latest_update": "Blocked by Other priorities and timeline is at risk.\n\nNext Steps: Reconfirm timing once priorities are reassessed.",
+      "blockers": [
+        "Other priorities"
+      ],
+      "next_expected_checkpoint": "2026-04-08",
+      "do_not_ask_until": "2026-04-07",
+      "last_updated_at": "2026-04-07T11:58:42.194207",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "table-filter-page-migration-15",
+      "task_name": "Filter Page Migration",
+      "definition": "migrating non-SEO-friendly ?filtreler URL structures to a new \"XC\" page format via 301 redirects and metadata preservation to improve organic performance and crawl efficiency.",
+      "task_link": "https://wiki.hepsiburada.com/spaces/SEOO/pages/499157358/Filter+URL+Migration+-+New+xc+URLs",
+      "owner": "",
+      "eta": "TBA",
+      "status": "on_hold",
+      "traffic_light": "yellow",
+      "latest_update": "Blocked by Kaspi Hierarchy Revisions prioritized and timeline is at risk.\n\nNext Steps: resume once higher-priority work is complete.",
+      "blockers": [
+        "Kaspi Hierarchy Revisions prioritized"
+      ],
+      "next_expected_checkpoint": "2026-04-08",
+      "do_not_ask_until": "2026-04-07",
+      "last_updated_at": "2026-04-07T11:59:31.658731",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "table-search-page-migration-16",
+      "task_name": "Search Page Migration",
+      "definition": "Extend Hydra CMS bulk upload capabilities to store, search, and filtered pages to improve SEO operational efficiency and reduce manual data entry errors.",
+      "task_link": "https://wiki.hepsiburada.com/spaces/SEOO/pages/472517133/Bulk+Upload+Feature+Search+Filtreler+Pages+Magaza+Pages",
+      "owner": "",
+      "eta": "TBA",
+      "status": "on_hold",
+      "traffic_light": "yellow",
+      "latest_update": "Blocked by Other priorities and timeline is at risk.\n\nNext Steps: revisit when priorities are reassessed.",
+      "blockers": [
+        "Other priorities"
+      ],
+      "next_expected_checkpoint": "2026-04-08",
+      "do_not_ask_until": "2026-04-07",
+      "last_updated_at": "2026-04-07T11:59:31.659603",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "table-organization-schema-implementation-17",
+      "task_name": "Organization Schema Implementation",
+      "definition": "Implement structured data to define the Brand Entity, enhancing Knowledge Graph presence.",
+      "task_link": "",
+      "owner": "",
+      "eta": "Apr 17",
+      "status": "done",
+      "traffic_light": "green",
+      "latest_update": "Renamed to (Home Page) to reflect the home page work.\n\nNext Steps: confirm the brand page rollout and update any references.",
+      "blockers": [],
+      "next_expected_checkpoint": "2026-04-08",
+      "do_not_ask_until": "2026-04-07",
+      "last_updated_at": "2026-04-07T11:41:30.776698",
+      "created_from": "sprint_plan"
+    },
+    {
+      "id": "hayatburada-blog-image-issue-1",
+      "task_name": "Hayatburada Blog Image Issue",
+      "definition": "Hayatburada Blog Image Issue",
+      "task_link": "",
+      "owner": "Murat",
+      "eta": "Apr 10",
+      "status": "follow_up",
+      "traffic_light": "green",
+      "latest_update": "Murat will connect with the network team to identify the issue and share findings by Apr 10.\n\nNext Steps: confirm the root cause and share the output by Apr 10.",
+      "blockers": [],
+      "next_expected_checkpoint": "2026-04-10",
+      "do_not_ask_until": "2026-04-07",
+      "last_updated_at": "2026-04-07T11:50:34.068522",
+      "created_from": "sprint_plan"
+    }
+  ],
+  "daily_logs": [
+    {
+      "timestamp": "2026-04-07T10:59:48.707584",
+      "user_message": "Adding URL to Home Page: to be discussed with Do\u011fa for the bandwidth, will be discussed on Apr 8.",
+      "applied_changes": [
+        "Updated 'Adding URL to Home Page' to blocked/red"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?",
+        "What do you need to unblock 'Filter Page Migration'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:00:12.105510",
+      "user_message": "Automatic link generation for Brand / Magaza Pages: will be started this week. in progress.",
+      "applied_changes": [
+        "Updated 'Automatic link generation for Brand / Magaza Pages' to in_progress/green"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?",
+        "What do you need to unblock 'Filter Page Migration'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:00:25.092088",
+      "user_message": "Dynamic Content Fields: on hold due to other priorities.",
+      "applied_changes": [
+        "Updated 'Dynamic Content Fields' to blocked/red"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?",
+        "What do you need to unblock 'Dynamic Content Fields'?",
+        "What do you need to unblock 'Filter Page Migration'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:13:38.556905",
+      "user_message": "Dynamic Content Fields: on hold.",
+      "applied_changes": [
+        "Updated 'Dynamic Content Fields' to on_hold/yellow"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?",
+        "What do you need to unblock 'Filter Page Migration'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:14:09.704082",
+      "user_message": "Enhanced Breadcrumb Trial Links for Brand+Category & PDP Pages: on hold, the implementation will be completed and we will seek alignment from the PLP + PDP teams.",
+      "applied_changes": [
+        "Updated 'Enhanced Breadcrumb Trial Links for Brand+Category & PDP Pages' to on_hold/yellow"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?",
+        "What do you need to unblock 'Filter Page Migration'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:14:45.024838",
+      "user_message": "Filter Page Migration: On hold, Kaspi Hierarchy Revisions prioritized.",
+      "applied_changes": [
+        "Updated 'Filter Page Migration' to on_hold/yellow"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:15:16.157372",
+      "user_message": "Hierarchy Revision - Case 1: started and in progress. The tech refinement for the case 1 will be followed with implementations.",
+      "applied_changes": [
+        "Updated 'Hierarchy Revision - Case 1' to in_progress/green"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:15:42.764853",
+      "user_message": "M-Web Content Disparity: on Hold",
+      "applied_changes": [
+        "Updated 'M-Web Content Disparity' to on_hold/yellow"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:16:10.883352",
+      "user_message": "Web Content Disparity: On Hold , we will Resume when priorities clear and confirm the restart date.",
+      "applied_changes": [
+        "Updated 'M-Web Content Disparity' to on_hold/yellow"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:16:29.546335",
+      "user_message": "Organization Schema Implementation: Deployed and compelted.",
+      "applied_changes": [
+        "Updated 'Organization Schema Implementation' to done/green"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:16:45.292143",
+      "user_message": "Organization Schema Implementation: Completed, no next steps required.",
+      "applied_changes": [
+        "Updated 'Organization Schema Implementation' to done/green"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:17:13.098897",
+      "user_message": "PDP Canonical Fix: \u00d6mer to arrange a session to clarify the requirements and current status rehgarding the error.",
+      "applied_changes": [
+        "Updated 'PDP Canonical Fix' to in_progress/yellow"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:17:34.976769",
+      "user_message": "Pop\u00fcler Aramalar widget enhancement for PDP + PLP Pages: on holdi will be prioritized on next sprints.",
+      "applied_changes": [
+        "Updated 'Pop\u00fcler Aramalar widget enhancement for PDP + PLP Pages' to on_hold/yellow"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:18:20.158568",
+      "user_message": "Search Collection Migration: on hold due to new requests coming from the SEO Team. We will discuss the final requirements, but not in the current sprint.",
+      "applied_changes": [
+        "Updated 'Search Collection Migration' to on_hold/yellow"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:18:43.461222",
+      "user_message": "Search Page Migration: on hold due to other priorities.",
+      "applied_changes": [
+        "Updated 'Search Page Migration' to on_hold/yellow"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:19:07.872780",
+      "user_message": "SEO Competitor Gap Enhancements - Project 1: Implementation started on FE side.",
+      "applied_changes": [
+        "Updated 'SEO Competitor Gap Enhancements - Project 1' to in_progress/green"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:19:28.260761",
+      "user_message": "SEO Content Filter Bug: on hold due to other priorities.",
+      "applied_changes": [
+        "Updated 'SEO Content Filter Bug' to on_hold/yellow"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:36:51.984953",
+      "user_message": "Organization Schema Implementation: compelted on home page side. will be implemented on the brand pages also.",
+      "applied_changes": [
+        "Updated 'Organization Schema Implementation' to done/green"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:41:02.607663",
+      "user_message": "Organization Schema Implementation : add this link https://wiki.hepsiburada.com/spaces/SEOO/pages/499158151/Organization+Brand+Entity+Schema+Implementation",
+      "applied_changes": [
+        "Updated 'Organization Schema Implementation' to done/green"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:41:30.776907",
+      "user_message": "Organization Schema Implementation: change the name to Organization Schema Implementation (Home Page)",
+      "applied_changes": [
+        "Updated 'Organization Schema Implementation' to done/green"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:50:03.304514",
+      "user_message": "Add a new task as Hayatburada Blog Image Issue. Current status is follow up. Murat to connect with network team and identify the problem. Expecting output within this week on friday.",
+      "applied_changes": [
+        "Added task 'Hayatburada Blog Image Issue'"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:50:34.068660",
+      "user_message": "Hayatburada Blog Image Issue: ETA is Apr 10",
+      "applied_changes": [
+        "Updated 'Hayatburada Blog Image Issue' to follow_up/green"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:58:42.194452",
+      "user_message": "Dynamic Content Fields: ETA is TBA",
+      "applied_changes": [
+        "Updated 'Dynamic Content Fields' to on_hold/yellow"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T11:59:31.659792",
+      "user_message": "Enhanced Breadcrumb Trial Links for Brand+Category & PDP Pages\nFilter Page Migration\nM-Web Content Disparity\nSEO Content Filter Bug\nSearch Collection Migration\nSearch Page Migration\n\n-> For these proejcts, ETA is TBA",
+      "applied_changes": [
+        "Updated 'Enhanced Breadcrumb Trial Links for Brand+Category & PDP Pages' to on_hold/yellow",
+        "Updated 'Filter Page Migration' to on_hold/yellow",
+        "Updated 'M-Web Content Disparity' to on_hold/yellow",
+        "Updated 'SEO Content Filter Bug' to on_hold/yellow",
+        "Updated 'Search Collection Migration' to on_hold/yellow",
+        "Updated 'Search Page Migration' to on_hold/yellow"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T12:15:31.435690",
+      "user_message": "Hierarchy Revision - Case 1: ETA is Apr 17",
+      "applied_changes": [
+        "Updated 'Hierarchy Revision - Case 1' to in_progress/green"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    },
+    {
+      "timestamp": "2026-04-07T12:15:46.792794",
+      "user_message": "Automatic link generation for Brand / Magaza Pages: ETA is Apr 17",
+      "applied_changes": [
+        "Updated 'Automatic link generation for Brand / Magaza Pages' to in_progress/green"
+      ],
+      "follow_up_prompts": [
+        "What do you need to unblock 'Default H1 Categories'?",
+        "What do you need to unblock 'Adding URL to Home Page'?"
+      ]
+    }
+  ]
+}
