@@ -43,6 +43,8 @@ SWAPPABLE_DIRS = [
 # They will be absent from the repo in public mode (covered by .gitignore).
 STASH_ONLY_FILES = [
     ".env",
+    "workspace/sprint_faq.json",
+    "workspace/sprint_faq.md",
 ]
 
 STASH_ONLY_DIRS = [

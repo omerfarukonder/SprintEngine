@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 import hashlib
 import re
 
@@ -178,6 +179,37 @@ def _augment_answer_with_overall_kb(question: str, answer: str) -> str:
     return f"{answer}\n\nRelevant organizational knowledge:\n" + "\n".join(snippets) + f"\n\n{citations}"
 
 
+def _build_archived_faq_prompt_section(question: str) -> str:
+    from .faq_store import (
+        archived_items_in_order,
+        format_archived_faq_block,
+        load_faq_items,
+        select_archived_for_context,
+    )
+
+    archived = archived_items_in_order(load_faq_items())
+    picked = select_archived_for_context(question, archived)
+    if not picked:
+        return ""
+    return format_archived_faq_block(picked)
+
+
+def _augment_answer_with_archived_faq(question: str, answer: str) -> str:
+    from .faq_store import (
+        archived_items_in_order,
+        format_archived_faq_block,
+        load_faq_items,
+        select_archived_for_context,
+    )
+
+    archived = archived_items_in_order(load_faq_items())
+    picked = select_archived_for_context(question, archived)
+    if not picked:
+        return answer
+    block = format_archived_faq_block(picked)
+    return f"{answer}\n\n{block}"
+
+
 def _is_overall_kb_overwrite_command(message: str) -> bool:
     lowered = message.lower()
     has_overwrite_word = any(w in lowered for w in ["overwrite", "replace", "update"])
@@ -310,7 +342,7 @@ def root() -> FileResponse:
 
 
 @app.post("/api/initialize")
-def initialize_from_plan(req: InitializeRequest | None = None) -> dict:
+def initialize_from_plan(req: Optional[InitializeRequest] = None) -> dict:
     if not PLAN_FILE.exists():
         raise HTTPException(status_code=404, detail="workspace/sprint_plan.md not found")
     payload = req or InitializeRequest()
@@ -451,13 +483,20 @@ def chat(req: ChatRequest) -> ChatResponse:
     if not question:
         raise HTTPException(status_code=400, detail="message cannot be empty")
     mode = (req.mode or "auto").strip().lower()
-    if mode not in {"auto", "query", "update"}:
+    if mode not in {"auto", "query", "update", "faq"}:
         mode = "auto"
+
+    if mode == "faq":
+        from .faq_commands import process_faq_message
+
+        answer = process_faq_message(question)
+        return ChatResponse(answer=answer, changed_tasks=[], follow_ups=[], confidence=0.85)
 
     if mode == "query":
         follow = build_follow_ups(state)
         base = answer_query(state, question)
         base = _augment_answer_with_overall_kb(question, base)
+        base = _augment_answer_with_archived_faq(question, base)
         return ChatResponse(answer=base, changed_tasks=[], follow_ups=follow, confidence=0.6)
 
     if _is_overall_kb_list_command(question):
@@ -548,7 +587,10 @@ def chat(req: ChatRequest) -> ChatResponse:
             confidence=0.6,
         )
 
-    llm_result = llm.interpret_message(state, question) if llm.enabled else None
+    faq_ctx = _build_archived_faq_prompt_section(question)
+    llm_result = (
+        llm.interpret_message(state, question, archived_faq_context=faq_ctx) if llm.enabled else None
+    )
 
     if llm_result:
         intent = llm_result.get("intent", "")
@@ -558,6 +600,9 @@ def chat(req: ChatRequest) -> ChatResponse:
             base = assistant_response or answer_query(state, question)
             if intent == "query":
                 base = _augment_answer_with_overall_kb(question, base)
+            # Archived FAQ text is already in the LLM prompt when faq_ctx is non-empty; avoid duplicating it here.
+            if not faq_ctx.strip():
+                base = _augment_answer_with_archived_faq(question, base)
             return ChatResponse(answer=base, changed_tasks=[], follow_ups=follow, confidence=0.6)
         updates = llm_result.get("updates", [])
         updates = llm.refine_updates(updates, question) if llm.enabled else updates
@@ -580,6 +625,7 @@ def chat(req: ChatRequest) -> ChatResponse:
         follow = build_follow_ups(state)
         base = answer_query(state, question)
         base = _augment_answer_with_overall_kb(question, base)
+        base = _augment_answer_with_archived_faq(question, base)
         return ChatResponse(answer=base, changed_tasks=[], follow_ups=follow, confidence=0.6)
 
     state, changed, follow = apply_daily_update(state, question)
@@ -611,6 +657,21 @@ def followups() -> dict:
     state = load_state()
     apply_recency_light_policy(state, stale_hours=24)
     return {"follow_ups": build_follow_ups(state)}
+
+
+@app.get("/api/faq")
+def get_faq() -> dict:
+    from .faq_store import FAQ_MD, active_items_in_order, load_faq_items
+
+    items = load_faq_items()
+    active = active_items_in_order(items)
+    return {
+        "active": [
+            {"n": i + 1, "id": x.id, "question": x.question, "answer": x.answer or ""}
+            for i, x in enumerate(active)
+        ],
+        "markdown_path": str(FAQ_MD),
+    }
 
 
 @app.get("/api/plan")

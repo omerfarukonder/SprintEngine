@@ -43,6 +43,8 @@ class SprintCopilotLLM:
             tasks.append(
                 {
                     "task_name": task.task_name,
+                    "definition": task.definition,
+                    "task_link": task.task_link,
                     "owner": task.owner,
                     "eta": task.eta,
                     "status": task.status.value,
@@ -55,7 +57,9 @@ class SprintCopilotLLM:
         recent_logs = [{"timestamp": log.timestamp.isoformat(), "user_message": log.user_message} for log in state.daily_logs[-8:]]
         return json.dumps({"sprint_name": state.sprint_name, "tasks": tasks, "recent_logs": recent_logs}, indent=2)
 
-    def interpret_message(self, state: SprintState, message: str) -> Optional[Dict[str, Any]]:
+    def interpret_message(
+        self, state: SprintState, message: str, archived_faq_context: str = ""
+    ) -> Optional[Dict[str, Any]]:
         client = self._get_client()
         if client is None:
             return None
@@ -79,9 +83,16 @@ class SprintCopilotLLM:
             "updates is a list with keys: action, task_name, task_link, owner, eta, status, traffic_light, "
             "latest_update, blockers, next_expected_checkpoint, do_not_ask_days.\n"
             "task_link is a URL to associate with the task. Only set it when the user provides a URL.\n"
-            "action must be one of: add, update, remove."
+            "action must be one of: add, update, remove.\n"
+            "If an 'Archived FAQs' section appears in the user prompt, those Q/A pairs are not shown in the FAQ sidebar; "
+            "use them in assistant_response only when they help answer the user's message."
         )
-        user_prompt = f"State:\n{self._state_context(state)}\n\nUser message:\n{message}\n\nOutput JSON only."
+        extra = ""
+        if archived_faq_context.strip():
+            extra = f"\n\n{archived_faq_context.strip()}\n"
+        user_prompt = (
+            f"State:\n{self._state_context(state)}{extra}\nUser message:\n{message}\n\nOutput JSON only."
+        )
         try:
             completion = client.chat.completions.create(
                 model=self.model,
@@ -234,6 +245,114 @@ class SprintCopilotLLM:
         if not text or "# " not in text:
             return None
         return text + ("" if text.endswith("\n") else "\n")
+
+    def refine_faq_text(self, raw_text: str, kind: str) -> str:
+        """Polish grammar and wording; keep meaning. kind is 'question' or 'answer'. Returns original if LLM off or on error."""
+        raw_text = (raw_text or "").strip()
+        if not raw_text:
+            return raw_text
+        if not self.enabled:
+            return raw_text
+        client = self._get_client()
+        if client is None:
+            return raw_text
+        label = "question" if (kind or "").strip().lower() == "question" else "answer"
+        system_prompt = (
+            "You refine FAQ text for grammar, spelling, and clear professional English only.\n"
+            "Do not change facts, meaning, intent, or scope.\n"
+            "Do not add new information, names, dates, or claims.\n"
+            "Do not remove substantive content—only fix unclear or broken phrasing.\n"
+            "Keep questions as questions and answers as answers.\n"
+            "Return strict JSON with a single key: refined (string)."
+        )
+        user_prompt = f"This is an FAQ {label}:\n\n{raw_text}\n\nReturn JSON only."
+        try:
+            completion = client.chat.completions.create(
+                model=self.model,
+                temperature=0.1,
+                response_format={"type": "json_object"},
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+            )
+            parsed = json.loads(completion.choices[0].message.content or "{}")
+        except Exception:
+            return raw_text
+        if not isinstance(parsed, dict):
+            return raw_text
+        refined = str(parsed.get("refined", "")).strip()
+        if not refined:
+            return raw_text
+        return refined
+
+    def interpret_faq_intent(self, message: str, active_faq_rows: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """Classify FAQ-mode user text into a structured action. Requires API key."""
+        message = (message or "").strip()
+        if not message:
+            return None
+        if not self.enabled:
+            return None
+        client = self._get_client()
+        if client is None:
+            return None
+        system_prompt = (
+            "You interpret user messages in Sprint FAQ editing mode.\n"
+            "The user is managing a numbered list of FAQ items (Q1, Q2, …) shown in the app.\n"
+            "Infer intent from natural language—do not require rigid command phrases.\n"
+            "Return strict JSON only with these keys:\n"
+            "- action: one of add_question, set_answer, update_question, archive, clarify.\n"
+            "- target_q: integer 1-based index into the ACTIVE list below, or null if not applicable or unknown.\n"
+            "- question_text: string. For add_question, the new question wording. For update_question, the replacement question text. Otherwise \"\".\n"
+            "- answer_text: string. For set_answer (or add_question if they gave an answer in the same message), the answer body. Otherwise \"\".\n"
+            "- clarify_message: string. Non-empty only when action is clarify—one short sentence asking what to do.\n"
+            "Rules:\n"
+            "- add_question: user adds a new FAQ, or their whole message is a new question to track. If they include both Q and A, fill question_text and answer_text.\n"
+            "- set_answer: user supplies or revises an answer for an existing item. Resolve target_q from phrases like 'for Q2', 'second question', 'the one about X', or by topic match to the list below.\n"
+            "- update_question: user rephrases or corrects the question text for an existing item (not the answer).\n"
+            "- archive: user wants to retire/hide an item (archive, remove from active list, done with this FAQ).\n"
+            "- clarify: only if you truly cannot choose a single interpretation; ask briefly.\n"
+            "- If the message clearly matches one FAQ topic for answering, prefer set_answer with that target_q.\n"
+            "- If no active FAQs exist, add_question is the only sensible add path; do not use target_q.\n"
+            "- If the user uses a prefix like 'add this question:' or 'add question:', put only the text after the colon in question_text.\n"
+            "- Do not use add_question for greetings, thanks, or off-topic chatter; use clarify if the message is not FAQ-related.\n"
+            "Output JSON only."
+        )
+        ctx = json.dumps(active_faq_rows, ensure_ascii=True, indent=2)
+        user_prompt = f"Active FAQs (n is the display number Qn):\n{ctx}\n\nUser message:\n{message}\n"
+        try:
+            completion = client.chat.completions.create(
+                model=self.model,
+                temperature=0.1,
+                response_format={"type": "json_object"},
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+            )
+            parsed = json.loads(completion.choices[0].message.content or "{}")
+        except Exception:
+            return None
+        if not isinstance(parsed, dict):
+            return None
+        action = str(parsed.get("action", "")).strip().lower()
+        if action not in {"add_question", "set_answer", "update_question", "archive", "clarify"}:
+            return None
+        tq = parsed.get("target_q")
+        target_q: Optional[int] = None
+        if tq is not None:
+            try:
+                target_q = int(tq)
+            except (TypeError, ValueError):
+                target_q = None
+        out: Dict[str, Any] = {
+            "action": action,
+            "target_q": target_q,
+            "question_text": str(parsed.get("question_text", "") or "").strip(),
+            "answer_text": str(parsed.get("answer_text", "") or "").strip(),
+            "clarify_message": str(parsed.get("clarify_message", "") or "").strip(),
+        }
+        return out
 
     def extract_overall_knowledge(self, state: SprintState, message: str) -> Optional[Dict[str, Any]]:
         client = self._get_client()

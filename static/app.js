@@ -15,13 +15,14 @@ const docxPath = document.getElementById("docxPath");
 const importDocxBtn = document.getElementById("importDocxBtn");
 const chatStatus = document.getElementById("chatStatus");
 const tableSort = document.getElementById("tableSort");
-const followupsEl = document.getElementById("followups");
+const faqListEl = document.getElementById("faqList");
+const faqPathHint = document.getElementById("faqPathHint");
 const planContent = document.getElementById("planContent");
 const statusTableBody = document.getElementById("statusTableBody");
 const statusMeta = document.getElementById("statusMeta");
 const statusSprintName = document.getElementById("statusSprintName");
-const dashboardTabBtn = document.getElementById("dashboardTabBtn");
-const reportTabBtn = document.getElementById("reportTabBtn");
+const activityDashboardBtn = document.getElementById("activityDashboardBtn");
+const activityReportBtn = document.getElementById("activityReportBtn");
 const dashboardView = document.getElementById("dashboardView");
 const reportView = document.getElementById("reportView");
 const generateReportBtn = document.getElementById("generateReportBtn");
@@ -32,10 +33,18 @@ const reportEditViewBtn = document.getElementById("reportEditViewBtn");
 const reportPreviewViewBtn = document.getElementById("reportPreviewViewBtn");
 const reportStatus = document.getElementById("reportStatus");
 const reportMeta = document.getElementById("reportMeta");
+const appRoot = document.getElementById("appRoot");
+const activityToggleBtn = document.getElementById("activityToggleBtn");
+const appBody = document.getElementById("appBody");
 
 let activeTypingToken = 0;
-const CHAT_MODES = ["auto", "query", "update"];
-const CHAT_MODE_NAMES = { auto: "Auto", query: "Explain-only", update: "Update-only" };
+const CHAT_MODES = ["auto", "query", "update", "faq"];
+const CHAT_MODE_NAMES = {
+  auto: "Auto",
+  query: "Explain-only",
+  update: "Update-only",
+  faq: "FAQ",
+};
 let currentChatMode = "auto";
 let currentView = "dashboard";
 let reportViewMode = "edit";
@@ -258,18 +267,32 @@ function setReportViewMode(mode) {
   if (isPreview) renderReportPreview();
 }
 
-function setFollowups(items) {
-  followupsEl.innerHTML = "";
-  if (!items.length) {
-    const li = document.createElement("li");
-    li.textContent = "No pending follow-ups.";
-    followupsEl.appendChild(li);
+function renderFaqPanel(data) {
+  if (!faqListEl) return;
+  faqListEl.innerHTML = "";
+  if (faqPathHint && data && data.markdown_path) {
+    faqPathHint.textContent = `Stored in ${data.markdown_path}`;
+  }
+  const active = (data && data.active) || [];
+  if (!active.length) {
+    const p = document.createElement("p");
+    p.className = "muted";
+    p.style.margin = "0";
+    p.textContent = "No FAQs yet. Switch to FAQ mode, then add questions or use add this question: …";
+    faqListEl.appendChild(p);
     return;
   }
-  for (const item of items) {
-    const li = document.createElement("li");
-    li.textContent = item;
-    followupsEl.appendChild(li);
+  for (const row of active) {
+    const div = document.createElement("div");
+    div.className = "faq-block";
+    const n = row.n != null ? row.n : "?";
+    const q = escapeHtml(row.question || "");
+    const a = String(row.answer || "").trim();
+    const aHtml = a
+      ? `<div class="faq-a"><strong>A:</strong> ${escapeHtml(a)}</div>`
+      : `<div class="faq-a muted"><strong>A:</strong> (no answer yet — use: for q${n}, the answer is …)</div>`;
+    div.innerHTML = `<div><span class="faq-n">Q${n}</span><span class="faq-q"><strong>Q:</strong> ${q}</span></div>${aHtml}`;
+    faqListEl.appendChild(div);
   }
 }
 
@@ -329,10 +352,21 @@ function renderTasks(tasks) {
   }
 }
 
-async function refreshFollowups() {
-  const res = await fetch("/api/followups");
-  const data = await res.json();
-  setFollowups(data.follow_ups || []);
+async function refreshFaq() {
+  try {
+    const res = await fetch("/api/faq");
+    const data = await res.json();
+    if (!res.ok) return;
+    renderFaqPanel(data);
+  } catch {
+    if (faqListEl) {
+      faqListEl.innerHTML = "";
+      const p = document.createElement("p");
+      p.className = "muted";
+      p.textContent = "Could not load FAQ.";
+      faqListEl.appendChild(p);
+    }
+  }
 }
 
 async function refreshTasks() {
@@ -354,7 +388,7 @@ async function refreshPlan() {
 }
 
 async function refreshAll() {
-  await Promise.all([refreshFollowups(), refreshTasks(), refreshPlan(), refreshInitializeGuard()]);
+  await Promise.all([refreshFaq(), refreshTasks(), refreshPlan(), refreshInitializeGuard()]);
 }
 
 async function refreshInitializeGuard() {
@@ -377,8 +411,17 @@ function setActiveView(view) {
   const dashboardActive = currentView === "dashboard";
   dashboardView.classList.toggle("active", dashboardActive);
   reportView.classList.toggle("active", !dashboardActive);
-  dashboardTabBtn.classList.toggle("active", dashboardActive);
-  reportTabBtn.classList.toggle("active", !dashboardActive);
+  if (appBody) {
+    appBody.classList.toggle("app-body--dashboard", dashboardActive);
+  }
+  if (activityDashboardBtn) {
+    activityDashboardBtn.classList.toggle("is-active", dashboardActive);
+    activityDashboardBtn.setAttribute("aria-current", dashboardActive ? "page" : "false");
+  }
+  if (activityReportBtn) {
+    activityReportBtn.classList.toggle("is-active", !dashboardActive);
+    activityReportBtn.setAttribute("aria-current", dashboardActive ? "false" : "page");
+  }
   localStorage.setItem("copilot:active-view", currentView);
 }
 
@@ -441,7 +484,7 @@ sendBtn.addEventListener("click", async () => {
         appendLine("system", `- ${task.task_name}: ${prettyStatus(task.status)} ${lightEmoji[task.traffic_light] || ""}`.trim());
       }
     }
-    setFollowups(data.follow_ups || []);
+    await refreshFaq();
     await refreshTasks();
     setChatStatus("Ready", false);
   } catch (error) {
@@ -588,14 +631,17 @@ importToggleBtn.addEventListener("click", () => {
   importToggleBtn.textContent = isHidden ? "Show Import" : "Hide Import";
 });
 
-dashboardTabBtn.addEventListener("click", () => {
-  setActiveView("dashboard");
-});
-
-reportTabBtn.addEventListener("click", async () => {
-  setActiveView("report");
-  await loadReport();
-});
+if (activityDashboardBtn) {
+  activityDashboardBtn.addEventListener("click", () => {
+    setActiveView("dashboard");
+  });
+}
+if (activityReportBtn) {
+  activityReportBtn.addEventListener("click", async () => {
+    setActiveView("report");
+    await loadReport();
+  });
+}
 
 reportEditViewBtn.addEventListener("click", () => {
   setReportViewMode("edit");
@@ -685,6 +731,32 @@ document.addEventListener("click", (event) => {
   if (chatModeMenu.contains(event.target) || chatModeBtn.contains(event.target)) return;
   closeChatModeMenu();
 });
+
+function setSidePanelOpen(open) {
+  if (!appRoot || !activityToggleBtn) return;
+  appRoot.classList.toggle("side-open", open);
+  activityToggleBtn.classList.toggle("tools-active", open);
+  activityToggleBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  localStorage.setItem("copilot:side-panel-open", open ? "1" : "0");
+}
+
+function toggleSidePanel() {
+  if (!appRoot) return;
+  setSidePanelOpen(!appRoot.classList.contains("side-open"));
+}
+
+if (activityToggleBtn && appRoot) {
+  activityToggleBtn.addEventListener("click", () => toggleSidePanel());
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && (e.key === "b" || e.key === "B")) {
+      e.preventDefault();
+      toggleSidePanel();
+    }
+  });
+  if (localStorage.getItem("copilot:side-panel-open") === "1") {
+    setSidePanelOpen(true);
+  }
+}
 
 setChatStatus("Ready", false);
 setReportStatus("Report ready", false);

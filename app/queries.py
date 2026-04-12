@@ -36,6 +36,20 @@ def yesterday_log(state: SprintState) -> str:
     return "Yesterday:\n" + "\n".join(f"- {l.timestamp.isoformat()}: {l.user_message}" for l in logs)
 
 
+def _find_task_by_name(state: SprintState, question: str):
+    lowered = question.lower()
+    best = None
+    best_score = 0
+    for task in state.tasks:
+        name_words = set(task.task_name.lower().split())
+        q_words = set(lowered.split())
+        overlap = len(name_words & q_words)
+        if overlap > best_score:
+            best_score = overlap
+            best = task
+    return best if best_score >= 2 else None
+
+
 def answer_query(state: SprintState, question: str) -> str:
     lowered = question.lower()
     if "what are" in lowered and "tasks" in lowered:
@@ -44,6 +58,13 @@ def answer_query(state: SprintState, question: str) -> str:
         return risky_tasks(state)
     if "yesterday" in lowered and "log" in lowered:
         return yesterday_log(state)
+    task = _find_task_by_name(state, question)
+    if task:
+        definition = task.definition or "No description available."
+        status_line = f"Owner: {task.owner or '—'} | ETA: {task.eta or '—'} | Status: {task.status.value} ({task.traffic_light.value})"
+        update = f"\nLatest update: {task.latest_update}" if task.latest_update else ""
+        link = f"\nLink: {task.task_link}" if task.task_link else ""
+        return f"**{task.task_name}**\n{definition}\n{status_line}{update}{link}"
     return "I can help with tasks, risks, and yesterday logs. Or send daily updates."
 
 

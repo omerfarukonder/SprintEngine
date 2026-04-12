@@ -69,3 +69,12 @@ class ChatResponse(BaseModel):
 class ImportDocxRequest(BaseModel):
     file_path: str
     auto_initialize: bool = True
+
+
+class FaqItem(BaseModel):
+    id: str
+    question: str
+    answer: str = ""
+    archived: bool = False
+    archived_at: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)

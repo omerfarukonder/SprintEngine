@@ -74,6 +74,16 @@ st.markdown("""
 <style>
 /* ── Base ── */
 .stApp { background: #111111; }
+/* Use full viewport width — Streamlit caps .block-container by default, leaving empty space on the right */
+section.main > div,
+[data-testid="stMainBlockContainer"] {
+  max-width: none !important;
+}
+div.block-container {
+  max-width: none !important;
+  padding-left: max(1rem, env(safe-area-inset-left)) !important;
+  padding-right: max(1rem, env(safe-area-inset-right)) !important;
+}
 [data-testid="stSidebar"] { background: #0a0a0a; border-right: 1px solid #2a2a2a; }
 [data-testid="stSidebar"] [data-testid="stMarkdown"] { color: #d4d4d4; }
 header[data-testid="stHeader"] { background: #111111; }
