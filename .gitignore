@@ -3,13 +3,13 @@ __pycache__/
 *.py[cod]
 .venv/
 
-# Environment
+# Environment — never commit real keys
 .env
 
 # macOS
 .DS_Store
 
-# Private stash (always keep out of git)
+# Private stash — contains real company data, never committed
 _private/
 
 # Large generated workspace files
@@ -19,7 +19,6 @@ workspace/sprint_state.backup-*.json
 workspace/backups/
 workspace/generated_tables/
 workspace/reports/
-workspace/daily_logs/
 
 # Company document
 *.docx
