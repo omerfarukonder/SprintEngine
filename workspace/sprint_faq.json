@@ -1,0 +1,132 @@
+{
+  "items": [
+    {
+      "id": "d45274d7-0e3c-4d3a-9043-472fe8f222e2",
+      "question": "test q",
+      "answer": "test.",
+      "archived": true,
+      "archived_at": "2026-04-08T13:04:00.629585",
+      "created_at": "2026-04-08T12:57:24.294149"
+    },
+    {
+      "id": "8ab79765-4e5e-41fc-afc0-c5cd72f75667",
+      "question": "When will we implement the robots.txt task from the task table?",
+      "answer": "This week.",
+      "archived": true,
+      "archived_at": "2026-04-09T10:46:16.065024",
+      "created_at": "2026-04-08T13:03:42.521980"
+    },
+    {
+      "id": "d08e3ed5-8393-4f87-bc24-24f8f1ae2b80",
+      "question": "Where are we on SEO Competitor Gap Enhancements - Project 1?",
+      "answer": "Not started yet. It will be started by Apr 13.",
+      "archived": true,
+      "archived_at": "2026-04-09T10:47:05.362301",
+      "created_at": "2026-04-08T13:26:59.765631"
+    },
+    {
+      "id": "3081023e-7f99-4bdd-97e1-bb82c4b9ab8e",
+      "question": "Any ETA on the Cache Performance Fix?",
+      "answer": "Will be handled by this week.",
+      "archived": true,
+      "archived_at": "2026-04-09T10:46:55.930228",
+      "created_at": "2026-04-08T13:27:21.622755"
+    },
+    {
+      "id": "c84dadad-7695-4ac5-bb90-355350fc4c40",
+      "question": "Clarify whether the Default H1 Categories side is working well for the Rohan team or not.",
+      "answer": "Rohan team's implementation failed again. We will check whether it is on our side or not.",
+      "archived": true,
+      "archived_at": "2026-04-09T10:48:56.011745",
+      "created_at": "2026-04-08T13:27:46.578223"
+    },
+    {
+      "id": "15d298c2-cb0a-4ef9-b87f-9a9bc0b7bf4d",
+      "question": "Clarify whether the SEO Tech team started this implementation and when they will provide an Excel format for the SEO team.",
+      "answer": "This will be started next week.",
+      "archived": true,
+      "archived_at": "2026-04-09T10:49:24.016588",
+      "created_at": "2026-04-08T13:28:31.013125"
+    },
+    {
+      "id": "f6c2c865-0143-4d5a-abe9-067abb8c3daa",
+      "question": "Where are we on the PDP page Googlebot required components?",
+      "answer": "Update: it will be completed within this week.",
+      "archived": true,
+      "archived_at": "2026-04-09T10:50:01.166920",
+      "created_at": "2026-04-09T06:39:26.149565"
+    },
+    {
+      "id": "a86aa40f-b17f-492b-810c-9d23092e3b86",
+      "question": "SEO Competitor Gap Enhancements - Project 1 will start next week.",
+      "answer": "",
+      "archived": true,
+      "archived_at": "2026-04-09T10:50:09.070482",
+      "created_at": "2026-04-09T06:39:42.099242"
+    },
+    {
+      "id": "113b9d53-acff-416b-b6d5-fcf9c20b9c20",
+      "question": "Cache Performance Fix: Cross-domain and INP are two different parts, both to be completed by Apr 10.",
+      "answer": "",
+      "archived": true,
+      "archived_at": "2026-04-09T10:50:15.793077",
+      "created_at": "2026-04-09T06:40:23.005149"
+    },
+    {
+      "id": "4360da3b-6904-40cc-a7ec-45358d0dd393",
+      "question": "For Q2, not started yet. Will be started by Apr 13.",
+      "answer": "This is an FAQ answer:\n\nis irrelevant, archive",
+      "archived": true,
+      "archived_at": "2026-04-09T10:47:30.167277",
+      "created_at": "2026-04-09T07:11:49.253681"
+    },
+    {
+      "id": "00eafb0b-66d5-48b4-95d8-0ebd64068af2",
+      "question": "Tomorrow, ask the team about the new subcategory importing task Duygu mentioned on Slack.",
+      "answer": "It is being resolved by Do\u011fa. Archive the question.",
+      "archived": true,
+      "archived_at": "2026-04-09T13:30:00.415756",
+      "created_at": "2026-04-09T10:57:43.605888"
+    },
+    {
+      "id": "1546eaa9-4374-4527-96be-fb478f01aba3",
+      "question": "Where are we on SEO Competitor Gap Enhancements - Project 1?",
+      "answer": "We will start it today.",
+      "archived": false,
+      "archived_at": null,
+      "created_at": "2026-04-09T13:29:26.200341"
+    },
+    {
+      "id": "c3a09034-6612-40d4-bbef-709ce67dc19e",
+      "question": "What are Yasn's comments on PDP page Googlebot required components?",
+      "answer": "The \"Birlikte al\" component does not already come with most products; we had not taken any action on this because it would have significantly extended the work. In a moment, @ilhan.oztozlu will move it back to the QA environment, and you can check it again.",
+      "archived": false,
+      "archived_at": null,
+      "created_at": "2026-04-09T13:31:31.112081"
+    },
+    {
+      "id": "4dc5be20-9c0f-40fc-9869-96923a612da3",
+      "question": "What happens to a URL if a category is closed? We discussed this with the Mordor team. What is the latest update here?",
+      "answer": "Murat is working with the Mordor team to clarify the current workflow for deprecated category pages. There are two cases: (1) the page is redirected to the parent category, or (2) it returns a 404. It is not yet clear which case applies in each situation. Murat will update here.",
+      "archived": false,
+      "archived_at": null,
+      "created_at": "2026-04-10T10:58:21.633223"
+    },
+    {
+      "id": "e4f18474-d29f-45ba-b697-46d5e58a04eb",
+      "question": "Where are we on the \"Adding URL to Home Page\" task?",
+      "answer": "Completed last Friday.",
+      "archived": false,
+      "archived_at": null,
+      "created_at": "2026-04-13T06:12:12.981946"
+    },
+    {
+      "id": "0794e3a0-fb47-43a1-97ba-38480dfda43a",
+      "question": "The Hydra URL manager returns randomized-like responses on API calls. This should be fixed. Ask \u00dcnsal to fix it.",
+      "answer": "Hierarchy Revision - Case 1: The implementation continues. Do\u011fa completed the Varnish-related implementations. On the Hydra redirection topic, we do not want to be blocked by these implementations, and we need to make another implementation for this on the Hydra side.",
+      "archived": false,
+      "archived_at": null,
+      "created_at": "2026-04-15T15:41:12.940030"
+    }
+  ]
+}
