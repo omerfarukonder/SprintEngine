@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sprint Engine</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap");
       * { box-sizing: border-box; }
@@ -72,6 +73,13 @@
         font-size: 18px;
         line-height: 1;
         padding: 0;
+      }
+      .activity-btn svg {
+        width: 19px;
+        height: 19px;
+        stroke: currentColor;
+        stroke-width: 1.7;
+        flex-shrink: 0;
       }
       .activity-btn:hover {
         color: var(--text);
@@ -452,13 +460,18 @@
         margin-top: 8px;
       }
       /* Percent widths so the grid grows with the viewport; last column absorbs extra space */
-      th:nth-child(1), td:nth-child(1) { width: 3%; min-width: 36px; }
+      th:nth-child(1), td:nth-child(1) { width: 3%; min-width: 41px; }
+      td:nth-child(1) {
+        white-space: nowrap;
+        overflow-wrap: normal;
+        word-break: normal;
+      }
       th:nth-child(2), td:nth-child(2) { width: 14%; min-width: 120px; }
       th:nth-child(3), td:nth-child(3) { width: 18%; min-width: 140px; }
       th:nth-child(4), td:nth-child(4) { width: 5%; min-width: 52px; }
       th:nth-child(5), td:nth-child(5) { width: 11%; min-width: 100px; }
       th:nth-child(6), td:nth-child(6) { width: 7%; min-width: 64px; }
-      th:nth-child(7), td:nth-child(7) { width: 42%; min-width: 200px; }
+      th:nth-child(7), td:nth-child(7) { width: 42%; min-width: 195px; }
       td:nth-child(2) { overflow-wrap: normal; }
       .muted { color: var(--muted); font-size: 12px; margin-top: 8px; }
       .mode-select { width: 180px; }
@@ -477,6 +490,38 @@
       .report-editor {
         min-height: 420px;
         font-family: "Manrope", sans-serif;
+      }
+
+      /* ── Content Generator ── */
+      .field-label {
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--muted);
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .cg-textarea {
+        width: 100%;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        color: var(--text);
+        font-family: "Manrope", sans-serif;
+        font-size: 13px;
+        line-height: 1.55;
+        padding: 10px 12px;
+        resize: vertical;
+      }
+      .cg-textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+      .cg-output {
+        background: #19171d;
+        border-color: #383242;
+        color: #efe7ef;
       }
       .report-preview {
         min-height: 420px;
@@ -504,9 +549,401 @@
         font-size: 12px;
       }
       .report-preview a { color: #ffbe97; }
+      .report-preview .report-markdown-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        margin: 0 0 12px;
+        font-size: 12.5px;
+      }
+      .report-preview .report-markdown-table th,
+      .report-preview .report-markdown-table td {
+        border-bottom: 1px solid #3f3a49;
+        padding: 9px;
+        text-align: left;
+        vertical-align: top;
+        overflow-wrap: break-word;
+      }
+      .report-preview .report-markdown-table th {
+        background: #2f2a38;
+        color: #f5edf4;
+        font-size: 11.5px;
+        letter-spacing: 0.3px;
+      }
+      .report-preview .report-markdown-table th:nth-child(1),
+      .report-preview .report-markdown-table td:nth-child(1) {
+        width: 30%;
+      }
+      .report-preview .report-markdown-table th:nth-child(2),
+      .report-preview .report-markdown-table td:nth-child(2) {
+        width: 16%;
+        min-width: 130px;
+      }
+      .report-preview .report-markdown-table th:nth-child(3),
+      .report-preview .report-markdown-table td:nth-child(3) {
+        width: 54%;
+      }
+      .report-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 600;
+        border-radius: 999px;
+        border: 1px solid #4a4356;
+        padding: 2px 8px;
+        white-space: nowrap;
+      }
+      .report-status--green {
+        color: #c6f5d5;
+        background: #20372a;
+        border-color: #2f5f44;
+      }
+      .report-status--yellow {
+        color: #ffe9a5;
+        background: #3f3420;
+        border-color: #715d31;
+      }
+      .report-status--red {
+        color: #ffd3d3;
+        background: #402427;
+        border-color: #7f3d44;
+      }
+      .report-status--gray {
+        color: #d7d6dc;
+        background: #2b2a2f;
+        border-color: #4a4750;
+      }
+      .report-status--neutral {
+        color: #e9dff0;
+        background: #2a2730;
+      }
       .hidden { display: none; }
       @keyframes dots { 0%{content:"";}25%{content:".";}50%{content:"..";}75%{content:"...";}100%{content:"";} }
+
+      /* ── PRD View ── */
+      .prd-upload-row { display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; margin-bottom:4px; }
+      .prd-upload-row input[type="text"] { flex:1 1 200px; }
+      .prd-upload-row input[type="file"] { flex:1 1 240px; background:#1c1a20; border:1px solid var(--line); border-radius:10px; padding:8px 10px; color:var(--muted); font-size:12px; }
+      .prd-list { display:flex; flex-direction:column; gap:16px; margin-top:16px; }
+      .prd-card { border:1px solid var(--line); border-radius:12px; background:#1c1a20; overflow:hidden; }
+      .prd-card-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; cursor:pointer; }
+      .prd-card-head:hover { background:#232127; }
+      .prd-card-title { font-size:14px; font-weight:700; color:var(--accent-2); margin:0; }
+      .prd-card-meta { font-size:11px; color:var(--muted); margin-top:2px; }
+      .prd-card-body { padding:0; border-top:1px solid var(--line); display:none; }
+      .prd-card-body.open { display:block; }
+      .prd-graph-svg { display:block; width:100%; height:460px; background:#19171d; }
+      .prd-empty-graph { color:var(--muted); font-size:12px; padding:20px; text-align:center; }
+      .prd-node-tip { position:absolute; top:12px; right:12px; width:240px; background:#1e1c24; border:1px solid #3f3a49; border-radius:10px; padding:12px 14px; z-index:10; font-size:12px; }
+      .prd-tip-close { position:absolute; top:8px; right:10px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:14px; line-height:1; }
+      .prd-tip-type { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:4px; }
+      .prd-tip-name { font-size:14px; font-weight:700; color:#e5e1ec; margin-bottom:6px; }
+      .prd-tip-desc { font-size:11px; color:#a89ec0; line-height:1.5; margin-bottom:8px; }
+      .prd-tip-rels-label { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:4px; }
+      .prd-tip-rel { font-size:11px; color:#c4bcd8; padding:2px 0; }
+      .prd-tip-reltype { color:#a78bfa; font-style:italic; }
+      .meeting-pre {
+        margin: 0;
+        min-height: 100px;
+        max-height: 42vh;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        background: #19171d;
+        border: 1px solid #383242;
+        border-radius: 10px;
+        padding: 12px;
+        font-size: 13px;
+        line-height: 1.45;
+        color: #efe7ef;
+      }
+      .meetings-saved-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .meetings-saved-item {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px;
+        background: #1c1a20;
+      }
+      .meetings-saved-item h4 {
+        margin: 0 0 6px;
+        font-size: 14px;
+        color: var(--accent-2);
+      }
+      .meetings-saved-meta {
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+      .meetings-saved-body {
+        font-size: 13px;
+        color: #efeaf0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        line-height: 1.45;
+      }
+      .meetings-empty {
+        color: var(--muted);
+        font-size: 13px;
+        margin: 0;
+      }
+      .meeting-wave-wrap {
+        margin-top: 12px;
+        border: 1px solid #383242;
+        border-radius: 10px;
+        background: #19171d;
+        padding: 10px;
+      }
+      .meeting-wave-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .meeting-wave-canvas {
+        display: block;
+        width: 100%;
+        height: 86px;
+        border-radius: 8px;
+        background: linear-gradient(180deg, #141218 0%, #1d1a22 100%);
+      }
+      .gantt-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .gantt-board {
+        border: 1px solid #3f3a49;
+        border-radius: 10px;
+        background: #19171d;
+        overflow: auto;
+        max-height: 72vh;
+        padding: 10px;
+      }
+      .gantt-empty {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .gantt-grid {
+        min-width: 900px;
+      }
+      .gantt-header {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .gantt-header-label {
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .gantt-ticks {
+        position: relative;
+        height: 26px;
+        border: 1px solid #3f3a49;
+        border-radius: 8px;
+        background: #1f1c24;
+      }
+      .gantt-tick {
+        position: absolute;
+        top: 2px;
+        transform: translateX(-50%);
+        font-size: 10px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .gantt-row {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .gantt-task-title {
+        font-size: 12px;
+        color: #efeaf0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .gantt-task-meta {
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .gantt-track {
+        position: relative;
+        height: 30px;
+        border: 1px solid #3f3a49;
+        border-radius: 8px;
+        background: #1f1c24;
+      }
+      .gantt-bar {
+        position: absolute;
+        top: 3px;
+        height: 22px;
+        border-radius: 6px;
+        border: 1px solid transparent;
+        background: #22c55e;
+        cursor: grab;
+        min-width: 20px;
+      }
+      .gantt-bar.status-done {
+        background: #22c55e;
+        border-color: #16a34a;
+      }
+      .gantt-bar.status-in_progress,
+      .gantt-bar.status-follow_up,
+      .gantt-bar.status-not_started {
+        background: #f59e0b;
+        border-color: #d97706;
+      }
+      .gantt-bar.status-blocked {
+        background: #ef4444;
+        border-color: #dc2626;
+      }
+      .gantt-bar.uncertain {
+        opacity: 0.72;
+        border-style: dashed;
+      }
+      .gantt-handle {
+        position: absolute;
+        top: 0;
+        width: 6px;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.35);
+        cursor: ew-resize;
+      }
+      .gantt-handle.start { left: 0; border-radius: 6px 0 0 6px; }
+      .gantt-handle.end { right: 0; border-radius: 0 6px 6px 0; }
+      .kb-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 6px;
+      }
+      .kb-toolbar input,
+      .kb-toolbar select {
+        width: auto;
+        min-width: 120px;
+      }
+      .kb-search {
+        flex: 1 1 260px;
+      }
+      .kb-edge-filters {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+        font-size: 11px;
+        color: #6b7280;
+      }
+      .kb-etoggle {
+        padding: 2px 9px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-family: inherit;
+        border: 1px solid #374151;
+        background: #111827;
+        color: #4b5563;
+        cursor: pointer;
+        transition: background 0.12s, color 0.12s, border-color 0.12s;
+      }
+      .kb-etoggle.active {
+        background: #1f2937;
+        color: #e5e7eb;
+        border-color: #6b7280;
+      }
+      .kb-etoggle[data-edge="taxonomy"].active    { border-color: #a78bfa; color: #a78bfa; }
+      .kb-etoggle[data-edge="semantic"].active    { border-color: #6ee7b7; color: #6ee7b7; }
+      .kb-etoggle[data-edge="version"].active     { border-color: #fbbf24; color: #fbbf24; }
+      .kb-etoggle[data-edge="overwrite"].active   { border-color: #fb923c; color: #fb923c; }
+      .kb-etoggle[data-edge="owns"].active        { border-color: #60a5fa; color: #60a5fa; }
+      .kb-etoggle[data-edge="references"].active  { border-color: #c084fc; color: #c084fc; }
+      .kb-stats {
+        color: var(--muted);
+        font-size: 12px;
+        margin-bottom: 10px;
+      }
+      .kb-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 12px;
+      }
+      .kb-canvas-wrap {
+        border: 1px solid #3f3a49;
+        border-radius: 10px;
+        background: #19171d;
+        min-height: 560px;
+        position: relative;
+        overflow: hidden;
+      }
+      .kb-svg {
+        width: 100%;
+        height: 560px;
+        display: block;
+      }
+      .kb-svg .kb-node { cursor: pointer; }
+      .kb-svg .kb-node circle:hover { filter: brightness(1.4); }
+      .kb-empty {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .kb-detail {
+        border: 1px solid #3f3a49;
+        border-radius: 10px;
+        background: #1c1a20;
+        padding: 12px;
+        min-height: 560px;
+      }
+      .kb-detail h4 {
+        margin: 0 0 8px;
+        font-size: 14px;
+      }
+      .kb-detail pre {
+        max-height: 210px;
+      }
+      .kb-legend {
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .kb-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid #4a4356;
+        border-radius: 999px;
+        padding: 2px 8px;
+        margin: 0 6px 6px 0;
+        font-size: 11px;
+        color: #f0e8ee;
+        background: #2a2730;
+      }
       @media (max-width: 980px) {
+        .kb-layout {
+          grid-template-columns: 1fr;
+        }
+        .kb-detail {
+          min-height: 0;
+        }
         .split-control input[type="range"] { width: 100%; }
         .app-root.side-open .side-panel {
           flex: 0 0 min(280px, 86vw);
@@ -544,7 +981,16 @@
           aria-label="Dashboard"
           aria-current="page"
         >
-          📊
+          <i data-lucide="layout-dashboard"></i>
+        </button>
+        <button
+          type="button"
+          class="activity-btn activity-nav-btn"
+          id="activityGanttBtn"
+          title="Gantt"
+          aria-label="Gantt"
+        >
+          <i data-lucide="gantt-chart"></i>
         </button>
         <button
           type="button"
@@ -553,7 +999,43 @@
           title="Sprint Report"
           aria-label="Sprint Report"
         >
-          📋
+          <i data-lucide="file-text"></i>
+        </button>
+        <button
+          type="button"
+          class="activity-btn activity-nav-btn"
+          id="activityMeetingsBtn"
+          title="Meetings"
+          aria-label="Meetings"
+        >
+          <i data-lucide="mic"></i>
+        </button>
+        <button
+          type="button"
+          class="activity-btn activity-nav-btn"
+          id="activityKnowledgeBtn"
+          title="General Knowledge"
+          aria-label="General Knowledge"
+        >
+          <i data-lucide="brain"></i>
+        </button>
+        <button
+          type="button"
+          class="activity-btn activity-nav-btn"
+          id="activityContentBtn"
+          title="Content Generator"
+          aria-label="Content Generator"
+        >
+          <i data-lucide="pen-line"></i>
+        </button>
+        <button
+          type="button"
+          class="activity-btn activity-nav-btn"
+          id="activityPrdBtn"
+          title="PRDs"
+          aria-label="PRDs"
+        >
+          <i data-lucide="book-open"></i>
         </button>
         <div class="activity-bar-spacer" aria-hidden="true"></div>
         <button
@@ -564,7 +1046,7 @@
           aria-controls="sidePanel"
           aria-expanded="false"
         >
-          ☰
+          <i data-lucide="sidebar"></i>
         </button>
       </aside>
       <aside class="side-panel" id="sidePanel" aria-label="Workspace tools">
@@ -660,6 +1142,125 @@
         </div>
       </div>
 
+      <div id="meetingsView" class="view">
+        <div class="panel">
+          <h3>Meeting transcription</h3>
+          <p class="muted" style="margin: 0 0 12px; font-size: 12px">
+            Enter a meeting name, then record with your microphone. When you stop, the audio is transcribed and summarized; only the summary is saved with the meeting name.
+          </p>
+          <label for="meetingNameInput" class="muted" style="display: block; margin-bottom: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em">Meeting name</label>
+          <input id="meetingNameInput" type="text" maxlength="200" placeholder="e.g. SEO standup — Apr 13" autocomplete="off" />
+          <label for="meetingCaptureMode" class="muted" style="display: block; margin: 10px 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em">Audio source</label>
+          <select id="meetingCaptureMode">
+            <option value="mic_only" selected>Microphone only</option>
+            <option value="mic_system">Microphone + computer audio (share audio)</option>
+          </select>
+          <p class="muted" style="margin: 8px 0 0; font-size: 11px;">
+            For computer audio, choose a tab/window/screen and enable share audio in the browser prompt.
+          </p>
+          <div class="row" style="margin-top: 12px">
+            <button id="meetingRecordBtn" type="button">Record</button>
+            <button id="meetingStopBtn" class="secondary" type="button" disabled>Stop</button>
+          </div>
+          <div class="meeting-wave-wrap">
+            <div class="meeting-wave-meta">
+              <span>Live waveform</span>
+              <span id="meetingWaveLevel">Idle</span>
+            </div>
+            <canvas
+              id="meetingWaveCanvas"
+              class="meeting-wave-canvas"
+              width="900"
+              height="170"
+              aria-label="Live microphone waveform"
+            ></canvas>
+          </div>
+          <div id="meetingsStatus" class="status-pill" style="margin-top: 12px">Ready</div>
+        </div>
+        <div class="panel">
+          <h3>Transcript</h3>
+          <pre id="meetingTranscript" class="meeting-pre">—</pre>
+        </div>
+        <div class="panel">
+          <h3>Summary</h3>
+          <pre id="meetingSummary" class="meeting-pre">—</pre>
+        </div>
+        <div class="panel">
+          <h3>Saved summaries</h3>
+          <div id="meetingsList" class="meetings-saved-list"></div>
+        </div>
+      </div>
+
+      <div id="knowledgeView" class="view">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Entity Knowledge Graph</h3>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <button id="egRefreshBtn" class="secondary" type="button">Refresh</button>
+              <button id="egRebuildBtn" class="secondary" type="button" title="Backfill from existing KB events">Rebuild</button>
+              <button id="egSynthesizeBtn" class="secondary" type="button" title="Run cross-source synthesis — mine durable facts from tasks, meetings, FAQs">Synthesize</button>
+              <button id="egRefineBtn" class="secondary" type="button" title="Run LLM-powered graph cleanup and relation refinement">Refine</button>
+            </div>
+          </div>
+          <div class="kb-toolbar">
+            <select id="egTypeFilter" title="Entity type filter">
+              <option value="all" selected>All types</option>
+              <option value="team">Team</option>
+              <option value="domain">Domain</option>
+              <option value="topic">Topic</option>
+              <option value="system">System</option>
+              <option value="person">Person</option>
+              <option value="process">Process</option>
+              <option value="constraint">Constraint</option>
+            </select>
+            <input id="egSearchInput" class="kb-search" type="text" placeholder="Search entities..." />
+          </div>
+          <div id="egStats" class="kb-stats">Loading entity graph...</div>
+          <div class="kb-layout">
+            <div class="kb-canvas-wrap">
+              <svg id="egGraphSvg" class="kb-svg" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet"></svg>
+              <div id="egGraphEmpty" class="kb-empty hidden">No entities yet. Send a message or click Rebuild.</div>
+            </div>
+            <aside class="kb-detail">
+              <h4>Entity Details</h4>
+              <div id="egDetailMeta" class="muted" style="margin-bottom: 8px;">Click a node to inspect.</div>
+              <div id="egDetailName" style="font-size:16px;font-weight:700;color:#e5e7eb;margin-bottom:4px;display:none;"></div>
+              <div id="egDetailType" style="margin-bottom:6px;display:none;"><span class="kb-chip" id="egDetailTypeBadge"></span></div>
+              <div id="egDetailDesc" style="color:#d1d5db;font-size:12px;line-height:1.5;margin-bottom:8px;"></div>
+              <div id="egDetailFacts" style="margin-bottom:8px;"></div>
+              <div id="egDetailRelations" style="font-size:11px;line-height:1.8;"></div>
+              <div class="kb-legend" style="margin-top:auto;">
+                <div style="margin-bottom: 6px;">Entity types</div>
+                <span class="kb-chip"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#60a5fa;margin-right:3px;"></span>Team</span>
+                <span class="kb-chip"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#c084fc;margin-right:3px;"></span>Domain</span>
+                <span class="kb-chip"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#2dd4bf;margin-right:3px;"></span>Topic</span>
+                <span class="kb-chip"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#fb923c;margin-right:3px;"></span>System</span>
+                <span class="kb-chip"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#f472b6;margin-right:3px;"></span>Person</span>
+                <span class="kb-chip"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#a3e635;margin-right:3px;"></span>Process</span>
+                <span class="kb-chip"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#fbbf24;margin-right:3px;"></span>Constraint</span>
+                <div style="margin: 8px 0 6px;">Relation types</div>
+                <span class="kb-chip"><svg width="16" height="6" style="vertical-align:middle;margin-right:3px"><line x1="0" y1="3" x2="16" y2="3" stroke="#c084fc" stroke-width="1.8"/></svg>has_subtopic</span>
+                <span class="kb-chip"><svg width="16" height="6" style="vertical-align:middle;margin-right:3px"><line x1="0" y1="3" x2="16" y2="3" stroke="#60a5fa" stroke-width="2"/></svg>owns</span>
+                <span class="kb-chip"><svg width="16" height="6" style="vertical-align:middle;margin-right:3px"><line x1="0" y1="3" x2="16" y2="3" stroke="#fb923c" stroke-width="1.6" stroke-dasharray="6 3"/></svg>depends_on</span>
+                <span class="kb-chip"><svg width="16" height="6" style="vertical-align:middle;margin-right:3px"><line x1="0" y1="3" x2="16" y2="3" stroke="#fbbf24" stroke-width="1.4" stroke-dasharray="4 3"/></svg>has_constraint</span>
+                <span class="kb-chip"><svg width="16" height="6" style="vertical-align:middle;margin-right:3px"><line x1="0" y1="3" x2="16" y2="3" stroke="#2dd4bf" stroke-width="1.6"/></svg>part_of</span>
+                <span class="kb-chip"><svg width="16" height="6" style="vertical-align:middle;margin-right:3px"><line x1="0" y1="3" x2="16" y2="3" stroke="#ef4444" stroke-width="2"/></svg>blocks</span>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <div id="ganttView" class="view">
+        <div class="panel gantt-panel">
+          <div class="panel-head">
+            <h3>Gantt Timeline</h3>
+          </div>
+          <div id="ganttMeta" class="muted">Loading timeline…</div>
+          <div id="ganttBoard" class="gantt-board"></div>
+        </div>
+      </div>
+
       <div id="reportView" class="view">
         <div class="panel">
           <div class="panel-head">
@@ -682,10 +1283,97 @@
           <div id="reportMeta" class="report-meta">No report generated yet.</div>
         </div>
       </div>
+
+      <div id="contentView" class="view">
+        <div class="panel" style="max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:18px;">
+          <div class="panel-head">
+            <h3>Content Generator</h3>
+          </div>
+
+          <!-- System Prompt -->
+          <div>
+            <label class="field-label" for="cgSystemPrompt">System Prompt</label>
+            <textarea
+              id="cgSystemPrompt"
+              class="cg-textarea"
+              rows="10"
+              spellcheck="false"
+            >For the following categories I need an excerpt based on the below information:
+
+1. The excerpt should be in Turkish language.
+2. The excerpt must highlight the main USP of a specific brand in connection to the respective category. Like Samsung Air conditioner should focus on the latest USP being pushed from Samsung in 2026 for Air conditioners. This can be technology, mechanical change, size change, or any other promotable USP.
+3. The excerpt must not exceed 150 words.
+4. The excerpt should not use repetitive sentence structure for different pages.
+5. The excerpt should give an advertising feel and not by any chance feel like it is generated by AI.
+6. The excerpt should follow proper Turkish semantics and grammatical structure.
+7. This excerpt will be placed on the landing pages for each of the brand+category combination.</textarea>
+          </div>
+
+          <!-- Input Context -->
+          <div>
+            <label class="field-label" for="cgInputContext">Input Context</label>
+            <textarea
+              id="cgInputContext"
+              class="cg-textarea"
+              rows="10"
+              placeholder="Paste brand, category, product details here..."
+              spellcheck="false"
+            ></textarea>
+          </div>
+
+          <!-- Actions -->
+          <div class="row" style="gap:8px;">
+            <button id="cgGenerateBtn" type="button">Generate</button>
+            <button id="cgClearBtn" class="secondary" type="button">Clear</button>
+          </div>
+          <div id="cgStatus" class="status-pill" style="display:none;"></div>
+
+          <!-- Output -->
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <label class="field-label" style="margin:0;" for="cgOutput">Generated Excerpt</label>
+              <button id="cgCopyBtn" class="secondary" type="button" style="font-size:11px;padding:3px 10px;" disabled>Copy</button>
+            </div>
+            <textarea
+              id="cgOutput"
+              class="cg-textarea cg-output"
+              rows="8"
+              readonly
+              placeholder="Generated excerpt will appear here..."
+              spellcheck="false"
+            ></textarea>
           </div>
         </div>
       </div>
-    </div>
+
+      <div id="prdView" class="view">
+        <div class="panel" style="max-width:900px;">
+          <div class="panel-head">
+            <h3>PRDs</h3>
+            <button id="prdRefreshBtn" class="secondary" type="button">Refresh</button>
+          </div>
+          <p class="muted" style="margin:0 0 12px;font-size:12px;">
+            Upload PDF PRDs — text is extracted, chunked, and fed into the knowledge graph automatically.
+          </p>
+
+          <!-- Upload form -->
+          <div class="prd-upload-row">
+            <input id="prdTitleInput" type="text" placeholder="PRD title, e.g. Q2 SEO Strategy" />
+            <input id="prdFileInput" type="file" accept=".pdf" />
+            <button id="prdUploadBtn" type="button">Upload PDF</button>
+          </div>
+          <div id="prdUploadStatus" class="status-pill hidden"></div>
+
+          <!-- PRD list -->
+          <div id="prdList" class="prd-list"></div>
+          <p id="prdEmpty" class="muted" style="display:none;margin-top:12px;">No PRDs uploaded yet.</p>
+        </div>
+      </div>
+
+          </div><!-- /app-body -->
+        </div><!-- /wrap -->
+      </div><!-- /main-shell -->
+    </div><!-- /app-root -->
     <script src="/static/app.js"></script>
   </body>
 </html>

@@ -33,6 +33,101 @@ def _extract_eta(message: str) -> str:
     return m.group(1).strip().strip(".") if m else ""
 
 
+def _next_weekday(base: date, weekday: int) -> date:
+    days_ahead = (weekday - base.weekday()) % 7
+    if days_ahead == 0:
+        days_ahead = 7
+    return base + timedelta(days=days_ahead)
+
+
+def _parse_iso_date(value: str) -> date | None:
+    raw = (value or "").strip()
+    if not raw:
+        return None
+    try:
+        return date.fromisoformat(raw)
+    except ValueError:
+        return None
+
+
+def _extract_start_date(message: str, base_date: date | None = None) -> str:
+    lowered = (message or "").lower().strip()
+    if not lowered:
+        return ""
+
+    today = date.today()
+    reference = base_date or today
+    # Prefer explicit date references when present.
+    iso_match = re.search(r"\b(\d{4}-\d{2}-\d{2})\b", lowered)
+    if iso_match:
+        return iso_match.group(1)
+
+    month_match = re.search(
+        r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+(\d{1,2})(?:[\s,/-]+(\d{2,4}))?\b",
+        lowered,
+        flags=re.IGNORECASE,
+    )
+    if month_match:
+        month_map = {
+            "jan": 1,
+            "feb": 2,
+            "mar": 3,
+            "apr": 4,
+            "may": 5,
+            "jun": 6,
+            "jul": 7,
+            "aug": 8,
+            "sep": 9,
+            "oct": 10,
+            "nov": 11,
+            "dec": 12,
+        }
+        month = month_map.get(month_match.group(1)[:3].lower())
+        day_num = int(month_match.group(2))
+        year_raw = (month_match.group(3) or "").strip()
+        year = today.year
+        if year_raw:
+            year = int(year_raw)
+            if year < 100:
+                year += 2000
+        try:
+            return date(year, month, day_num).isoformat()
+        except ValueError:
+            pass
+
+    has_start_signal = "start" in lowered or "started" in lowered or "kickoff" in lowered or "kicked off" in lowered
+    if has_start_signal:
+        rel = re.search(r"\b(\d+)\s+(day|days|week|weeks)\s+(later|after)\b", lowered)
+        if rel:
+            qty = int(rel.group(1))
+            unit = rel.group(2)
+            delta_days = qty * (7 if "week" in unit else 1)
+            return (reference + timedelta(days=delta_days)).isoformat()
+        rel = re.search(r"\b(\d+)\s+(day|days|week|weeks)\s+(earlier|before)\b", lowered)
+        if rel:
+            qty = int(rel.group(1))
+            unit = rel.group(2)
+            delta_days = qty * (7 if "week" in unit else 1)
+            return (reference - timedelta(days=delta_days)).isoformat()
+
+    if "start next week" in lowered or "starting next week" in lowered or "will start next week" in lowered:
+        return _next_weekday(today, 0).isoformat()  # next Monday
+    if "started last week" in lowered or "start last week" in lowered:
+        return (today - timedelta(days=today.weekday() + 7)).isoformat()
+    if "start tomorrow" in lowered or "starting tomorrow" in lowered:
+        return (today + timedelta(days=1)).isoformat()
+    if "started yesterday" in lowered or "start yesterday" in lowered:
+        return (today - timedelta(days=1)).isoformat()
+    if "start today" in lowered or "starting today" in lowered or "started today" in lowered:
+        return today.isoformat()
+
+    # Generic start signal without explicit date: assume now.
+    start_verbs = [" project started", " task started", " started ", " kickoff ", " kicked off "]
+    if any(token in f" {lowered} " for token in start_verbs):
+        return today.isoformat()
+    return ""
+
+
 def _looks_like_eta_only_message(message: str) -> bool:
     lowered = (message or "").strip().lower()
     if not lowered:
@@ -73,6 +168,68 @@ def _parse_add_task_message(message: str) -> Dict[str, str] | None:
     if not task_name:
         return None
     return {"task_name": task_name, "owner": _extract_owner(message), "eta": _extract_eta(message)}
+
+
+def parse_group_command(message: str) -> Dict[str, Any] | None:
+    """Parse: group: <child1>, <child2>, ... => <parent name>
+    Returns {parent, children} or None if the message doesn't match."""
+    stripped = message.strip()
+    if not re.match(r"^group\s*:", stripped, flags=re.IGNORECASE):
+        return None
+    rest = re.sub(r"^group\s*:\s*", "", stripped, flags=re.IGNORECASE).strip()
+    if "=>" not in rest:
+        return None
+    parts = rest.split("=>", 1)
+    children_raw = parts[0].strip()
+    parent_name = parts[1].strip().strip('"').strip("'")
+    children = [c.strip().strip('"').strip("'") for c in children_raw.split(",") if c.strip()]
+    if not parent_name or not children:
+        return None
+    return {"parent": parent_name, "children": children}
+
+
+def parse_define_command(message: str) -> Dict[str, str] | None:
+    """Parse: define: <task name> => <definition text>
+    Returns {task_name, definition} or None if the message doesn't match."""
+    stripped = message.strip()
+    # Must start with "define:" (case-insensitive)
+    if not re.match(r"^define\s*:", stripped, flags=re.IGNORECASE):
+        return None
+    # Strip the "define:" prefix
+    rest = re.sub(r"^define\s*:\s*", "", stripped, flags=re.IGNORECASE).strip()
+    # Split on the "=>" separator
+    if "=>" not in rest:
+        return None
+    parts = rest.split("=>", 1)
+    task_name = parts[0].strip().strip('"').strip("'")
+    definition = parts[1].strip().strip('"').strip("'")
+    if not task_name or not definition:
+        return None
+    return {"task_name": task_name, "definition": definition}
+
+
+def apply_define_update(
+    state: SprintState, task_name: str, definition: str
+) -> Tuple[SprintState, List[Task], List[str]]:
+    """Set or update the definition of an existing task. Creates the task if it doesn't exist."""
+    task = _resolve_task_by_name(state, task_name)
+    if task is None:
+        # Create a minimal new task with the definition
+        task = Task(
+            id=_new_task_id(state, task_name),
+            task_name=task_name,
+            definition=definition,
+            created_from="chat_define",
+        )
+        state.tasks.append(task)
+        state.updated_at = datetime.utcnow()
+        return state, [task], [f"Created task '{task_name}' with definition"]
+    old_def = task.definition or ""
+    task.definition = definition
+    task.last_updated_at = datetime.utcnow()
+    state.updated_at = datetime.utcnow()
+    verb = "Updated" if old_def else "Set"
+    return state, [task], [f"{verb} definition for '{task_name}'"]
 
 
 def _parse_link_task_message(message: str) -> Dict[str, str] | None:
@@ -134,6 +291,22 @@ def _match_tasks(state: SprintState, message: str) -> List[Task]:
 
 def _infer_status(message: str) -> Tuple[TaskStatus | None, TrafficLight | None]:
     lowered = message.lower()
+    lowered_compact = re.sub(r"\s+", "", lowered)
+    resumed_patterns = [
+        r"\bnow\s+in\s*[-_ ]?progress\b",
+        r"\bin\s*[-_ ]?progress\s+now\b",
+        r"\binp\s*rogress\b",
+        r"\bunblocked\b",
+        r"\bno\s+longer\s+blocked\b",
+        r"\bnot\s+blocked\s+anymore\b",
+        r"\bresumed\b",
+        r"\bback\s+on\s+track\b",
+        r"\bstarted\s+again\b",
+    ]
+    if any(re.search(pat, lowered, flags=re.IGNORECASE) for pat in resumed_patterns):
+        return TaskStatus.in_progress, TrafficLight.green
+    if "inprogress" in lowered_compact or "inprogres" in lowered_compact:
+        return TaskStatus.in_progress, TrafficLight.green
     future_completion = any(
         t in lowered
         for t in [
@@ -156,7 +329,11 @@ def _infer_status(message: str) -> Tuple[TaskStatus | None, TrafficLight | None]
         return TaskStatus.on_hold, TrafficLight.yellow
     if any(t in lowered for t in ["follow up", "follow-up", "needs follow up", "needs follow-up", "followup"]):
         return TaskStatus.follow_up, TrafficLight.yellow
-    if any(t in lowered for t in ["blocked", "stuck"]):
+    negated_blocked = any(
+        phrase in lowered
+        for phrase in ["not blocked", "no longer blocked", "unblocked", "not stuck", "unstuck", "resolved blocker"]
+    )
+    if not negated_blocked and any(t in lowered for t in ["blocked", "stuck"]):
         return TaskStatus.blocked, TrafficLight.red
     if any(t in lowered for t in ["slowly", "delayed", "delay", "at risk", "risky"]):
         return TaskStatus.in_progress, TrafficLight.yellow
@@ -167,6 +344,18 @@ def _infer_status(message: str) -> Tuple[TaskStatus | None, TrafficLight | None]
     if any(t in lowered for t in ["working", "progress", "started", "doing"]):
         return TaskStatus.in_progress, TrafficLight.green
     return None, None
+
+
+def _has_explicit_blocker_signal(message: str) -> bool:
+    lowered = (message or "").lower()
+    if any(token in lowered for token in ["blocked on ", "blocker:", "blocked", "stuck"]):
+        if any(
+            phrase in lowered
+            for phrase in ["not blocked", "no longer blocked", "unblocked", "not stuck", "unstuck"]
+        ):
+            return False
+        return True
+    return False
 
 
 def _light_from_latest_update(latest_update: str, current_light: TrafficLight) -> TrafficLight:
@@ -294,6 +483,7 @@ def _apply_amazon_update_principles(task_name: str, raw_update: str, status: Tas
 
 
 def apply_daily_update(state: SprintState, message: str) -> Tuple[SprintState, List[Task], List[str]]:
+    message_start_date = _extract_start_date(message)
     add_payload = _parse_add_task_message(message)
     if add_payload:
         existing = _resolve_task_by_name(state, add_payload["task_name"])
@@ -304,6 +494,7 @@ def apply_daily_update(state: SprintState, message: str) -> Tuple[SprintState, L
                 definition=add_payload["task_name"],
                 owner=add_payload["owner"],
                 eta=add_payload["eta"],
+                start_date=message_start_date or None,
                 latest_update=message,
                 next_expected_checkpoint=(date.today() + timedelta(days=1)).isoformat(),
             )
@@ -315,6 +506,8 @@ def apply_daily_update(state: SprintState, message: str) -> Tuple[SprintState, L
                 existing.owner = add_payload["owner"]
             if add_payload["eta"]:
                 existing.eta = add_payload["eta"]
+            if message_start_date:
+                existing.start_date = message_start_date
             existing.latest_update = message
             existing.last_updated_at = datetime.utcnow()
             changed = [existing]
@@ -347,20 +540,39 @@ def apply_daily_update(state: SprintState, message: str) -> Tuple[SprintState, L
             return state, [task], follow
 
     targets = _match_tasks(state, message)
-    if not targets and state.tasks:
+    if not targets and len(state.tasks) == 1:
         targets = [state.tasks[0]]
+    if not targets:
+        follow_ups = build_follow_ups(state)
+        state.updated_at = datetime.utcnow()
+        state.daily_logs.append(
+            DailyLogEntry(
+                user_message=message,
+                applied_changes=["No matching task found; no update applied."],
+                follow_up_prompts=follow_ups,
+            )
+        )
+        return state, [], follow_ups
     inferred_status, inferred_light = _infer_status(message)
     blockers = _extract_blockers(message)
     eta_only_message = _looks_like_eta_only_message(message)
     eta_text = _extract_eta(message)
+    today = date.today()
     changed_tasks: List[Task] = []
     changes: List[str] = []
     for task in targets:
+        base_start = _parse_iso_date(getattr(task, "start_date", "") or "") or today
+        start_date_text = _extract_start_date(message, base_date=base_start)
         if eta_only_message and eta_text:
             if task.eta != eta_text:
                 task.eta = eta_text
                 changed_tasks.append(task)
                 changes.append(f"Updated ETA for '{task.task_name}' to {eta_text}")
+            if start_date_text and task.start_date != start_date_text:
+                task.start_date = start_date_text
+                if task not in changed_tasks:
+                    changed_tasks.append(task)
+                    changes.append(f"Updated start date for '{task.task_name}' to {start_date_text}")
             continue
         if inferred_status:
             task.status = inferred_status
@@ -371,6 +583,9 @@ def apply_daily_update(state: SprintState, message: str) -> Tuple[SprintState, L
             task.status = TaskStatus.blocked
             task.traffic_light = TrafficLight.red
             task.do_not_ask_until = date.today() + timedelta(days=1)
+        elif inferred_status in {TaskStatus.in_progress, TaskStatus.done, TaskStatus.on_hold, TaskStatus.follow_up}:
+            # Once a task is explicitly resumed/completed/parked, previous blockers should not keep it sticky-red.
+            task.blockers = []
         elif task.status == TaskStatus.done:
             task.do_not_ask_until = date.today() + timedelta(days=3)
         else:
@@ -383,6 +598,8 @@ def apply_daily_update(state: SprintState, message: str) -> Tuple[SprintState, L
         )
         task.traffic_light = _light_from_latest_update(task.latest_update, task.traffic_light)
         _enforce_completed_is_green(task)
+        if start_date_text:
+            task.start_date = start_date_text
         task.last_updated_at = datetime.utcnow()
         task.next_expected_checkpoint = (date.today() + timedelta(days=1)).isoformat()
         changed_tasks.append(task)
@@ -400,6 +617,7 @@ def apply_structured_updates(state: SprintState, message: str, updates: List[Dic
     changes: List[str] = []
 
     msg_status, msg_light = _infer_status(message)
+    has_explicit_blocker_signal = _has_explicit_blocker_signal(message)
 
     for item in updates:
         if not isinstance(item, dict):
@@ -424,6 +642,7 @@ def apply_structured_updates(state: SprintState, message: str, updates: List[Dic
                     eta=eta,
                     latest_update=str(item.get("latest_update", "")).strip() or message,
                     next_expected_checkpoint=str(item.get("next_expected_checkpoint", "")).strip() or (date.today() + timedelta(days=1)).isoformat(),
+                    start_date=_extract_start_date(message) or None,
                 )
                 state.tasks.append(task)
                 changed_tasks.append(task)
@@ -434,6 +653,10 @@ def apply_structured_updates(state: SprintState, message: str, updates: List[Dic
                 if eta:
                     existing.eta = eta
                 existing.latest_update = str(item.get("latest_update", "")).strip() or message
+                existing_start = _parse_iso_date(getattr(existing, "start_date", "") or "") or date.today()
+                parsed_start = _extract_start_date(message, base_date=existing_start)
+                if parsed_start:
+                    existing.start_date = parsed_start
                 existing.last_updated_at = datetime.utcnow()
                 changed_tasks.append(existing)
                 changes.append(f"Task '{existing.task_name}' already exists; metadata updated")
@@ -477,21 +700,54 @@ def apply_structured_updates(state: SprintState, message: str, updates: List[Dic
                 has_do_not_ask_signal,
             ]
         )
+        task_start_base = _parse_iso_date(getattr(task, "start_date", "") or "") or date.today()
+        msg_start_date = _extract_start_date(message, base_date=task_start_base)
         if eta_only_update:
             if task.eta != eta:
                 task.eta = eta
                 changed_tasks.append(task)
                 changes.append(f"Updated ETA for '{task.task_name}' to {eta}")
+            if msg_start_date and task.start_date != msg_start_date:
+                task.start_date = msg_start_date
+                if task not in changed_tasks:
+                    changed_tasks.append(task)
+                    changes.append(f"Updated start date for '{task.task_name}' to {msg_start_date}")
             continue
+        if (
+            msg_status in {TaskStatus.in_progress, TaskStatus.done, TaskStatus.on_hold, TaskStatus.follow_up}
+            and status == TaskStatus.blocked
+            and not has_explicit_blocker_signal
+        ):
+            # User's explicit "resume/progress" statement should win over an over-conservative LLM blocked label.
+            status = msg_status
+            if msg_light is not None:
+                light = msg_light
+
+        progress_override_active = (
+            msg_status in {TaskStatus.in_progress, TaskStatus.done, TaskStatus.on_hold, TaskStatus.follow_up}
+            and not has_explicit_blocker_signal
+        )
+
         if status is not None:
             task.status = status
         if light is not None:
             task.traffic_light = light
         if isinstance(blockers, list):
-            task.blockers = [str(b).strip() for b in blockers if str(b).strip()]
-            if task.blockers and task.status not in (TaskStatus.done, TaskStatus.on_hold):
+            parsed_blockers = [str(b).strip() for b in blockers if str(b).strip()]
+            task.blockers = parsed_blockers
+            if progress_override_active and task.status in {
+                TaskStatus.in_progress,
+                TaskStatus.done,
+                TaskStatus.on_hold,
+                TaskStatus.follow_up,
+            }:
+                # Keep progress status authoritative unless user explicitly says blocked/stuck.
+                task.blockers = []
+            elif task.blockers and task.status not in (TaskStatus.done, TaskStatus.on_hold):
                 task.status = TaskStatus.blocked
                 task.traffic_light = TrafficLight.red
+        elif status in {TaskStatus.in_progress, TaskStatus.done, TaskStatus.on_hold, TaskStatus.follow_up}:
+            task.blockers = []
         elif msg_status is not None:
             task.status = msg_status
             if msg_light is not None:
@@ -512,6 +768,8 @@ def apply_structured_updates(state: SprintState, message: str, updates: List[Dic
             task.owner = owner
         if eta:
             task.eta = eta
+        if msg_start_date:
+            task.start_date = msg_start_date
         task.next_expected_checkpoint = next_checkpoint or (date.today() + timedelta(days=1)).isoformat()
         if isinstance(do_not_ask_days, int) and do_not_ask_days >= 0:
             task.do_not_ask_until = date.today() + timedelta(days=do_not_ask_days)

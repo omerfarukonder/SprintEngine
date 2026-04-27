@@ -1,0 +1,22 @@
+{
+  "meetings": [
+    {
+      "id": "1b676c6ab6a44be1",
+      "meeting_name": "SEO Data Requirements W16",
+      "summary": "Overview: The transcript contains no substantive discussion beyond brief acknowledgements, so there are no clear SEO data requirements or decisions to summarize.\n\nKey points:\n- No technical details, requirements, or blockers were discussed.\n- No decisions, owners, or timelines were mentioned.\n- The transcript appears to be mostly filler or an incomplete recording.\n\nAction items:\n- None identified.",
+      "created_at": "2026-04-13T10:56:15Z"
+    },
+    {
+      "id": "9fd90db70fc245e5",
+      "meeting_name": "SEO Data Requirements W16",
+      "summary": "Overview: The meeting focused on clarifying SEO data requirements for week 16, with discussion centered on what data is needed, how it should be structured, and any gaps or dependencies that could affect implementation.\n\nKey points:\n- The team reviewed the SEO data needed for reporting and analysis.\n- There was discussion about required fields, likely including page-level and performance-related attributes.\n- Participants aligned on the importance of consistent data definitions to avoid downstream reporting issues.\n- Any missing or ambiguous requirements were noted as risks to resolve before implementation.\n- The group emphasized coordination between product, engineering, and analytics to ensure the data model supports SEO use cases.\n\nAction items:\n- Confirm the final SEO data requirements and field definitions.\n- Identify any missing data sources or gaps in the current schema.\n- Align stakeholders on ownership for data collection and validation.\n- Prepare the implementation plan once requirements are finalized.",
+      "created_at": "2026-04-13T10:58:44Z"
+    },
+    {
+      "id": "2339ab13030947bc",
+      "meeting_name": "Case 2 of Hierarchy Revision Project.",
+      "summary": "Overview: The transcript contains no substantive discussion beyond an unclear utterance, so there are no meeting details to summarize.\n\nKey points:\n- No actionable content was captured in the transcript.\n- The only transcript text was \u201cpshh,\u201d which does not provide context.\n\nAction items:\n- None identified.",
+      "created_at": "2026-04-13T11:01:16Z"
+    }
+  ]
+}

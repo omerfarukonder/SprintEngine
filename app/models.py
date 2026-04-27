@@ -28,6 +28,7 @@ class Task(BaseModel):
     definition: str = ""
     task_link: str = ""
     owner: str = ""
+    start_date: Optional[str] = None
     eta: str = ""
     status: TaskStatus = TaskStatus.not_started
     traffic_light: TrafficLight = TrafficLight.green

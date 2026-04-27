@@ -80,8 +80,10 @@ class SprintCopilotLLM:
             "Do not include task name, status words, or traffic color words in latest_update.\n"
             "Use concrete facts and keep it under 240 characters when possible.\n"
             "Return JSON with keys: intent, assistant_response, updates.\n"
-            "updates is a list with keys: action, task_name, task_link, owner, eta, status, traffic_light, "
+            "updates is a list with keys: action, task_name, definition, task_link, owner, eta, status, traffic_light, "
             "latest_update, blockers, next_expected_checkpoint, do_not_ask_days.\n"
+            "definition is a 1-3 sentence description of what the task is and why it exists. "
+            "Set it when adding a new task or when the user explicitly describes what a task is about.\n"
             "task_link is a URL to associate with the task. Only set it when the user provides a URL.\n"
             "action must be one of: add, update, remove.\n"
             "If an 'Archived FAQs' section appears in the user prompt, those Q/A pairs are not shown in the FAQ sidebar; "
@@ -182,6 +184,44 @@ class SprintCopilotLLM:
             out.append(original)
         return out or updates
 
+    def refine_task_history_text(self, task_name: str, raw_text: str) -> str:
+        """Softly polish task history text while preserving factual content."""
+        text = (raw_text or "").strip()
+        if not text or not self.enabled:
+            return text
+        client = self._get_client()
+        if client is None:
+            return text
+        system_prompt = (
+            "You refine task timeline notes for readability.\n"
+            "Do grammar and clarity improvements only.\n"
+            "Do NOT add or remove facts, dates, owners, status signals, blockers, URLs, or commitments.\n"
+            "Do NOT infer missing context.\n"
+            "Keep meaning exactly the same and keep it concise.\n"
+            "Return strict JSON with one key: refined."
+        )
+        user_prompt = (
+            f"Task: {task_name}\n"
+            f"Original text:\n{text}\n\n"
+            "Return JSON only."
+        )
+        try:
+            completion = client.chat.completions.create(
+                model=self.model,
+                temperature=0.0,
+                response_format={"type": "json_object"},
+                messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+            )
+            parsed = json.loads(completion.choices[0].message.content or "{}")
+        except Exception:
+            return text
+        if not isinstance(parsed, dict):
+            return text
+        refined = str(parsed.get("refined", "")).strip()
+        if not refined:
+            return text
+        return refined
+
     def generate_sprint_report(self, state: SprintState, recent_updates: List[str]) -> Optional[str]:
         client = self._get_client()
         if client is None:
@@ -189,7 +229,16 @@ class SprintCopilotLLM:
         system_prompt = (
             "Write a weekly sprint report in clear business prose.\n"
             "Follow this structure exactly:\n"
-            "## Summary\n## Business Impact\n## Progress vs Plan\n## Risks and Blockers\n## Decisions Needed\n## Next 7 Days\n"
+            "## Summary\n## Progress vs Plan\n## Risks and Blockers\n## Decisions Needed\n## Next 7 Days\n## On Stack\n"
+            "The 'Progress vs Plan' section MUST be a markdown table with exactly these columns:\n"
+            "| Task | Status | Update |\n"
+            "| --- | --- | --- |\n"
+            "Include only tasks that are NOT on_hold in 'Progress vs Plan'.\n"
+            "The 'On Stack' section MUST be another markdown table with the same columns and include only on_hold tasks.\n"
+            "For task names, use markdown links when task_link exists.\n"
+            "For status, prefix with color emoji: 🟢 or 🟡 or 🔴.\n"
+            "Keep the Update cell concise (one sentence, no line breaks).\n"
+            "All other sections remain prose or bullet lists as appropriate.\n"
             "Use concise, concrete language and evidence from input updates.\n"
             "Avoid vague claims. Include owners/tasks when present.\n"
             "Output markdown only."
@@ -365,7 +414,9 @@ class SprintCopilotLLM:
             "knowledge_type must be one of: constraint, capability, dependency, risk, organizational_limit, process_rule.\n"
             "scope must be one of: team, system, process, project.\n"
             "Use only facts explicitly present in message; do not invent.\n"
-            "Skip transient status-only task updates."
+            "ONLY keep durable, reusable organizational rules, constraints, ownership mappings, or cross-team alignment policies.\n"
+            "Do NOT include transient timeline/status updates such as waiting, in progress, ETA, or date-specific statements.\n"
+            "When useful, rewrite to a canonical policy sentence (for example: 'If X, then Y' or 'For domain D, align team T')."
         )
         user_prompt = (
             f"State:\n{self._state_context(state)}\n\n"
@@ -414,3 +465,106 @@ class SprintCopilotLLM:
                 }
             )
         return {"items": normalized}
+
+    # ── Entity-relation extraction for the knowledge graph ─────────────────
+    def extract_entity_relations(
+        self, state: "SprintState", message: str
+    ) -> Optional[Dict[str, Any]]:
+        client = self._get_client()
+        if client is None:
+            return None
+        system_prompt = (
+            "You are an entity-relationship extractor that builds a knowledge graph.\n"
+            "Given a user message about their work, extract ENTITIES and RELATIONS.\n\n"
+            "Return strict JSON with two keys: entities, relations.\n\n"
+            "entities: array of objects with keys:\n"
+            "  - name: short canonical label (e.g. 'Mordor Team', 'PLP', 'Core Web Vitals')\n"
+            "  - type: one of: team, domain, topic, system, person, process, constraint\n"
+            "  - description: one sentence explaining what this entity is or does\n\n"
+            "relations: array of objects with keys:\n"
+            "  - source: entity name (must match one in entities array)\n"
+            "  - target: entity name (must match one in entities array)\n"
+            "  - type: one of: has_subtopic, owns, depends_on, has_constraint, related_to, part_of, communicates_with, blocks\n"
+            "  - label: short human-readable description of the relationship\n"
+            "  - confidence: 0.0 to 1.0\n\n"
+            "Rules:\n"
+            "- Extract entities explicitly mentioned or clearly implied.\n"
+            "- Use SHORT CANONICAL names: strip syntax like $...$ or quotes. "
+            "Merge obvious variants into one entity (e.g. 'Mordor' and 'Mordor team' = 'Mordor Team').\n"
+            "- DO extract: teams, work domains, topics/techniques, systems/platforms, people, processes, rules/constraints.\n"
+            "- DO extract ownership, dependencies, subtopic hierarchies, constraints, cross-team alignment.\n"
+            "- Do NOT extract generic/common nouns as entities (HTML, URL, page, API, date, time, desktop, mobile).\n"
+            "- Do NOT extract transient status (dates, ETAs, progress percentages, 'waiting for review').\n"
+            "- If no meaningful entities or relations can be extracted, return empty arrays.\n"
+            "- Prefer specific relation types over generic 'related_to' when a clearer type applies.\n"
+            "- Prefer fewer, high-quality entities over many low-value ones."
+        )
+        user_prompt = (
+            f"Sprint context:\n{self._state_context(state)}\n\n"
+            f"User message:\n{message}\n\n"
+            "Extract entities and relations. Output JSON only."
+        )
+        try:
+            completion = client.chat.completions.create(
+                model=self.model,
+                temperature=0.1,
+                response_format={"type": "json_object"},
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+            )
+            parsed = json.loads(completion.choices[0].message.content or "{}")
+        except Exception:
+            return None
+        if not isinstance(parsed, dict):
+            return None
+
+        VALID_ENTITY_TYPES = {"team", "domain", "topic", "system", "person", "process", "constraint"}
+        VALID_RELATION_TYPES = {
+            "has_subtopic", "owns", "depends_on", "has_constraint",
+            "related_to", "part_of", "communicates_with", "blocks",
+        }
+
+        entities = []
+        for item in parsed.get("entities", []):
+            if not isinstance(item, dict):
+                continue
+            name = str(item.get("name", "")).strip()
+            etype = str(item.get("type", "")).strip().lower()
+            desc = str(item.get("description", "")).strip()
+            if not name:
+                continue
+            if etype not in VALID_ENTITY_TYPES:
+                etype = "topic"
+            entities.append({"name": name, "type": etype, "description": desc})
+
+        entity_names_lower = {e["name"].lower() for e in entities}
+
+        relations = []
+        for item in parsed.get("relations", []):
+            if not isinstance(item, dict):
+                continue
+            source = str(item.get("source", "")).strip()
+            target = str(item.get("target", "")).strip()
+            rtype = str(item.get("type", "")).strip().lower()
+            label = str(item.get("label", "")).strip()
+            try:
+                confidence = float(item.get("confidence", 0.8))
+            except (TypeError, ValueError):
+                confidence = 0.8
+            if not source or not target:
+                continue
+            if source.lower() not in entity_names_lower or target.lower() not in entity_names_lower:
+                continue
+            if rtype not in VALID_RELATION_TYPES:
+                rtype = "related_to"
+            relations.append({
+                "source": source,
+                "target": target,
+                "type": rtype,
+                "label": label,
+                "confidence": max(0.0, min(1.0, confidence)),
+            })
+
+        return {"entities": entities, "relations": relations}
